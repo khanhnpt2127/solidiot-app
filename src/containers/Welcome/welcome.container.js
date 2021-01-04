@@ -21,7 +21,8 @@ export class WelcomeComponent extends Component<Props> {
       isLoading: false,
       hasImage: false,
       errCode: -1,
-      errMess: ''
+      errMess: '',
+      devices: []
     };
   }
 
@@ -100,6 +101,14 @@ export class WelcomeComponent extends Component<Props> {
   closeMessage = () => {
     this.setState({ errCode: -1, errMessage: "" })
   }
+
+  addNewDevice = (newDevice) => {
+    console.log(newDevice)
+    this.setState(prevState => ({devices: [...prevState.devices, newDevice]}))
+  }
+  //TODO: add device function
+
+
   render() {
     const { name, image, isLoading } = this.state;
     const { webId } = this.props;
@@ -107,8 +116,8 @@ export class WelcomeComponent extends Component<Props> {
     <>
       <Container style={{marginTop: "10px"}}>
         <AleartPopupContainer onClose={this.closeMessage} errCode={this.state.errCode} errMessage={this.state.errMess}/>
-        <AddDeviceFormContainer messages={this.showMessage} />
-        <ShowDevice />
+        <AddDeviceFormContainer messages={this.showMessage} onNewDevice={this.addNewDevice} />
+        <ShowDevice devices={this.state.devices} />
       </Container>
     </>
     );

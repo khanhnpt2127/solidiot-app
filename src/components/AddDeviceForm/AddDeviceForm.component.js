@@ -53,7 +53,6 @@ export default class AddDeviceForm extends Component {
 
   handleSubmit = async (event) => {
     event.preventDefault();
-    //TODO: Add Logic 
     const resp = await axios.get(this.state.host);
     console.log(resp.data);
     this.props.onSubmit(resp.data);
