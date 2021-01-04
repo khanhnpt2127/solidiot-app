@@ -1,1 +1,1 @@
-# solidiot-app
+# solidiot
