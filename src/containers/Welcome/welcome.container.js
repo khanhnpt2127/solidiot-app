@@ -103,10 +103,9 @@ export class WelcomeComponent extends Component<Props> {
   }
 
   addNewDevice = (newDevice) => {
-    console.log(newDevice)
+    console.log(newDevice);
     this.setState(prevState => ({devices: [...prevState.devices, newDevice]}))
   }
-  //TODO: add device function
 
 
   render() {

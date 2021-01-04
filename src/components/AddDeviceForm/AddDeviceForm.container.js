@@ -15,10 +15,8 @@ export default class AddDeviceFormContainer extends Component {
       }));
       //TODO: create config file, ACL an save json to storage
 
-      // TODO: add name later
       this.props.onNewDevice({ id: deviceData.device.id, name: deviceData.device.deviceName });
     } else {
-      console.log(rs.DUPLICATE_INVALID);
       this.props.messages(rs.DUPLICATE_INVALID);
     }
   };
