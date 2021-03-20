@@ -40,7 +40,7 @@ export default class DeviceItem extends Component {
                     style={{ minHeight: "26px" }}
                   ></Button>
                 </OverlayTrigger>
-                <Accordion.Toggle as={Button} variant="link" eventKey="0">
+                <Accordion.Toggle style={{ color: "#388E3C"}}  as={Button} variant="link" eventKey="0">
                   <span style={{ marginLeft: "5px" }}> {device.name} </span>
                 </Accordion.Toggle>
               </Col>
