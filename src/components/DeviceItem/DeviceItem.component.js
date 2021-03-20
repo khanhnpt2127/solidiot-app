@@ -14,6 +14,8 @@ import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import  {atomOneDark} from "react-syntax-highlighter/dist/esm/styles/hljs";
+import JSONPretty from 'react-json-pretty';
+import ReactJson from 'react-json-view'
 export default class DeviceItem extends Component {
   
 
@@ -53,10 +55,8 @@ export default class DeviceItem extends Component {
               <Row>
                 <Col sm={12}>
                   <h6 style={{"textTransform": "lowercase", "fontSize": "12px"}}>data:</h6>
-                  <SyntaxHighlighter language="javascript"  wrapLines={true}  style={atomOneDark}>
-                    {JSON.stringify(device.data)}
-                  </SyntaxHighlighter>
-                </Col>
+                  <ReactJson src={device.data} iconStyle="circle" collapsed="1"  onAdd="false" displayDataTypes="false" onDelete="false" name={device.name} theme="hopscotch" />
+                </Col> 
               </Row>
             </Accordion.Collapse>
           </Accordion>

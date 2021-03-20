@@ -108,3 +108,9 @@ form-group .select-role {
 .solid-provider-select .option {
   padding-left: 10px !important;
 }
+
+.syntaxhighlighter {
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    min-height: 500px;
+}
