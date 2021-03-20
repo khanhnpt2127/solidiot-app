@@ -15,6 +15,7 @@ const ListDeviceContaner = (props) => {
   return (
     <>
       <Container style={{ marginTop: "10px" }}>
+        <h3>{props.title}: </h3>
         <ListGroup>
           {props.devices.map((device) => (
             <DeviceItem key={device.id} {...device} />

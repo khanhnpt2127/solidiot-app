@@ -8,8 +8,9 @@ import {Form, Button, Col} from "react-bootstrap";
 export default class AddDeviceForm extends Component {
   state = { host: "" };
 
-  handleSave(event) {
+  async handleSave(event) {
     event.preventDefault();
+
     // Not using LDFlex here, because this is not an RDF document.
     // const url = "https://tkngx.inrupt.net/share/some-doc.txt";
     // const result = SolidAuth.fetch(url, {

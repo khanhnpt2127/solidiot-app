@@ -2,19 +2,155 @@ import AddDeviceForm from "./AddDeviceForm.component";
 import React, { Component } from "react";
 import { Jumbotron, Container } from "react-bootstrap";
 import * as rs from '../../utils/resourceMessages'
+import { RegisterJob, listOfJob } from '../CronJob/cronJobServices'
+import SolidAuth from 'solid-auth-client';
+import { ldflexHelper, errorToaster } from '@utils';
+
+
+
 export default class AddDeviceFormContainer extends Component {
   state = {
     devices: [],
   };
+  
 
-  addNewDevice = (deviceData) => {
+  
+  createDeviceData = async (deviceData, deviceId,hostname) => {
+    var urlData = `https://${hostname}/solidiot-app/${deviceId}/data.json`;
+    const result = await SolidAuth.fetch(urlData, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body:deviceData 
+    });
+    if (result.ok) {
+      console.log("ok")
+    } else if (result.ok === false) {
+      console.log(result.err)
+    }
+  }
+
+  writeIndexFile = async(data,hostname) => {
+    var urlIndex = `https://${hostname}/solidiot-app/index.json`;
+    const result = await SolidAuth.fetch(urlIndex, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: data
+    });
+    if (result.ok) {
+      console.log("ok")
+    } else if (result.ok === false) {
+      console.log(result.err)
+    }
+  }
+
+  fetchIndexFile = async(newDeviceId, hostname) => {
+    var urlIndex = `https://${hostname}/solidiot-app/index.json`;
+    
+    const result = await SolidAuth.fetch(urlIndex, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (result.status === 404) {
+      var data = [newDeviceId];
+      this.writeIndexFile(JSON.stringify(data),hostname);
+    } else {
+      const doc = SolidAuth.fetch(urlIndex);
+      doc
+        .then(async response => {
+          const text = await response.text();
+          if (response.ok) {
+            var currDevices = JSON.parse(text);
+
+            if(!currDevices.includes(newDeviceId))
+              currDevices.push(newDeviceId);
+
+            this.writeIndexFile(JSON.stringify(currDevices.filter(function (el) { return el != null; })),hostname);
+          } 
+        })
+        .catch(() => {
+        });
+    }
+
+  }
+
+  createDeviceTD = async (deviceTDString, deviceId, hostname) => {
+    var urlDesc = `https://${hostname}/solidiot-app/${deviceId}/desc.jsonld`;
+
+    const result = await SolidAuth.fetch(urlDesc, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/ld+json'
+      },
+      body: deviceTDString
+    });
+    if (result.ok) {
+      this.fetchIndexFile(deviceId,hostname);
+    } else if (result.ok === false) {
+      console.log(result.err)
+    }
+  }
+
+
+  addNewDevice = async (deviceData) => {
     const found = this.state.devices.some((item) => deviceData.device.id == item.device.id)
     if(!found){
       this.setState(prevState => ({
         devices: [...prevState.devices, deviceData],
       }));
-      //TODO: create config file, ACL an save json to storage
+      //TODO: create file 
+      SolidAuth.trackSession(session => {
+      if (!session)
+        console.log('The user is not logged in')
+      else
+      {
+        const url = new URL(session.webId);
+        console.log(url.hostname)
+  var obj = {
+    "@context": "https://www.w3.org/2019/wot/td/v1",
+    "id": "urn:dev:ops:32473-WoTLamp-1234",
+    "title": "MyLampThing",
+    "securityDefinitions": {
+        "basic_sc": {"scheme": "basic", "in":"header"}
+    },
+    "security": ["basic_sc"],
+    "properties": {
+        "status" : {
+            "type": "string",
+            "forms": [{"href": "https://mylamp.example.com/status"}]
+        }
+    },
+    "actions": {
+        "toggle" : {
+            "forms": [{"href": "https://mylamp.example.com/toggle"}]
+        }
+    },
+    "events":{
+        "overheating":{
+            "data": {"type": "string"},
+            "forms": [{
+                "href": "https://mylamp.example.com/oh",
+                "subprotocol": "longpoll"
+            }]
+        }
+    }
+};
+        this.createDeviceTD(JSON.stringify(obj),deviceData.device.id, url.hostname);
+        this.createDeviceData(JSON.stringify(deviceData.data),deviceData.device.id,url.hostname);
 
+
+      }
+    })
+  
+
+
+   
+      RegisterJob(deviceData.device.id, deviceData.device.id);
       this.props.onNewDevice({ id: deviceData.device.id, name: deviceData.device.deviceName });
     } else {
       this.props.messages(rs.DUPLICATE_INVALID);
@@ -22,6 +158,7 @@ export default class AddDeviceFormContainer extends Component {
   };
 
   render() {
+
     return (
       <Container>
         <Jumbotron>

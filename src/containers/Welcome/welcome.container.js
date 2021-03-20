@@ -1,12 +1,13 @@
-import React, { Component } from 'react';
-import data from '@solid/query-ldflex';
-import { namedNode } from '@rdfjs/data-model';
-import { successToaster, errorToaster } from '@utils';
+import React, { Component } from "react";
+import data from "@solid/query-ldflex";
+import { namedNode } from "@rdfjs/data-model";
+import { successToaster, errorToaster } from "@utils";
 import AddDeviceFormContainer from "../../components/AddDeviceForm/AddDeviceForm.container";
-import { AleartPopupContainer} from '../../components/AlertPopup/AleartPopup.container'
+import { AleartPopupContainer } from "../../components/AlertPopup/AleartPopup.container";
 import ShowDevice from "../../components/ListDevice/ListDevice.container";
 import { Container } from "react-bootstrap";
-const defaultProfilePhoto = '/img/icon/empty-profile.svg';
+import SolidAuth from "solid-auth-client";
+const defaultProfilePhoto = "/img/icon/empty-profile.svg";
 
 /**
  * Container component for the Welcome Page, containing example of how to fetch data from a POD
@@ -14,16 +15,111 @@ const defaultProfilePhoto = '/img/icon/empty-profile.svg';
 export class WelcomeComponent extends Component<Props> {
   constructor(props) {
     super(props);
-
     this.state = {
-      name: '',
+      name: "",
       image: defaultProfilePhoto,
       isLoading: false,
       hasImage: false,
       errCode: -1,
-      errMess: '',
-      devices: []
+      errMess: "",
+      devices: [],
+      sharedDevices: [],
     };
+    this.fetchCurrData();
+    this.fetchSharedData();
+  }
+
+  fetchSharedData() {
+    const { webId } = this.props;
+    const url = new URL(webId);
+
+    var urlSharedItem = `https://${url.hostname}/solidiot-app/sharedItems.json`;
+    const doc = SolidAuth.fetch(urlSharedItem);
+    doc
+      .then(async (response) => {
+        const text = await response.text();
+        if (response.ok) {
+          var currDevices = JSON.parse(text);
+          currDevices.forEach((element) => {
+            let data = element.split("/");
+            let hostname = data[0];
+            let deviceId = data[1];
+
+            var urlDesc = `https://${hostname}/solidiot-app/${deviceId}/desc.jsonld`;
+
+            const doc = SolidAuth.fetch(urlDesc);
+
+            doc
+              .then(async (response) => {
+                const text = await response.text();
+                if (response.ok) {
+                  var currDevice = JSON.parse(text);
+
+                  this.setState((prevState) => ({
+                    sharedDevices: [
+                      ...prevState.sharedDevices,
+                      { id: element, name: currDevice.title },
+                    ],
+                  }));
+                }
+              })
+              .catch(() => {});
+          });
+        }
+      })
+      .catch(() => {});
+  }
+
+  async fetchCurrDeviceData(hostname, deviceId) {
+    var urlData = `https://${hostname}/solidiot-app/${deviceId}/data.json`;
+    const doc = SolidAuth.fetch(urlData);
+    let dData = await doc
+      .then(async (response) => {
+        const text = await response.text();
+        if (response.ok) {
+          let deviceData = JSON.parse(text);
+          return deviceData;
+        }
+      })
+      .catch(() => {});
+    return dData;
+  }
+
+  async fetchCurrData() {
+    const { webId } = this.props;
+    const url = new URL(webId);
+
+    var urlIndex = `https://${url.hostname}/solidiot-app/index.json`;
+    const doc = SolidAuth.fetch(urlIndex);
+    await doc
+      .then(async (response) => {
+        const text = await response.text();
+        if (response.ok) {
+          var currDevices = JSON.parse(text);
+          currDevices.forEach(async (element) => {
+            var urlDesc = `https://${url.hostname}/solidiot-app/${element}/desc.jsonld`;
+            const doc = SolidAuth.fetch(urlDesc);
+
+            await doc
+              .then(async (response) => {
+                const text = await response.text();
+                if (response.ok) {
+                  var currDevice = JSON.parse(text);
+                  var deviceData = await this.fetchCurrDeviceData(url.hostname,element)
+                  console.log(deviceData)
+                  this.setState((prevState) => ({
+                    devices: [
+                      ...prevState.devices,
+                      { id: element, name: currDevice.title, data: deviceData },
+                    ],
+                  }));
+                }
+              })
+              .catch(() => {});
+          });
+        }
+      })
+      .catch(() => {});
   }
 
   componentDidMount() {
@@ -45,6 +141,7 @@ export class WelcomeComponent extends Component<Props> {
     this.setState({ isLoading: true });
     let hasImage;
     const { webId } = this.props;
+    console.log(webId);
     /*
      * This is an example of how to use LDFlex. Here, we're loading the webID link into a user variable. This user object
      * will contain all of the data stored in the webID link, such as profile information. Then, we're grabbing the user.name property
@@ -53,7 +150,10 @@ export class WelcomeComponent extends Component<Props> {
     const user = data[webId];
     const nameLd = await user.vcard_fn;
 
-    const name = nameLd && nameLd.value.trim().length > 0 ? nameLd.value : webId.toString();
+    const name =
+      nameLd && nameLd.value.trim().length > 0
+        ? nameLd.value
+        : webId.toString();
     const imageLd = await user.vcard_hasPhoto;
 
     let image;
@@ -83,7 +183,7 @@ export class WelcomeComponent extends Component<Props> {
    * will just update it, the idea is use image instead of hasPhoto
    * @params{String} uri photo url
    */
-  updatePhoto = async (uri: String, message, title = '') => {
+  updatePhoto = async (uri: String, message, title = "") => {
     const { hasImage } = this.state;
     try {
       const { user } = data;
@@ -91,34 +191,47 @@ export class WelcomeComponent extends Component<Props> {
       else await user.vcard_hasPhoto.add(namedNode(uri));
       successToaster(message, title);
     } catch (error) {
-      errorToaster(error.message, 'Error');
+      errorToaster(error.message, "Error");
     }
   };
   showMessage = (message) => {
-    console.log(message.data)
-    this.setState({ errCode: message.code, errMess: message.data })
-  }
+    console.log(message.data);
+    this.setState({ errCode: message.code, errMess: message.data });
+  };
   closeMessage = () => {
-    this.setState({ errCode: -1, errMessage: "" })
-  }
+    this.setState({ errCode: -1, errMessage: "" });
+  };
 
   addNewDevice = (newDevice) => {
     console.log(newDevice);
-    this.setState(prevState => ({devices: [...prevState.devices, newDevice]}))
-  }
-
+    this.setState((prevState) => ({
+      devices: [...prevState.devices, newDevice],
+    }));
+  };
 
   render() {
     const { name, image, isLoading } = this.state;
     const { webId } = this.props;
     return (
-    <>
-      <Container style={{marginTop: "10px"}}>
-        <AleartPopupContainer onClose={this.closeMessage} errCode={this.state.errCode} errMessage={this.state.errMess}/>
-        <AddDeviceFormContainer messages={this.showMessage} onNewDevice={this.addNewDevice} />
-        <ShowDevice devices={this.state.devices} />
-      </Container>
-    </>
+      <>
+        <Container style={{ marginTop: "10px" }}>
+          <AleartPopupContainer
+            onClose={this.closeMessage}
+            errCode={this.state.errCode}
+            errMessage={this.state.errMess}
+          />
+          <AddDeviceFormContainer
+            messages={this.showMessage}
+            onNewDevice={this.addNewDevice}
+          />
+          <ShowDevice title="your devices" devices={this.state.devices} />
+          
+          {/* <ShowDevice
+            title="your shared devices"
+            devices={this.state.sharedDevices}
+          /> */}
+        </Container>
+      </>
     );
   }
 }
