@@ -5,6 +5,8 @@ import { successToaster, errorToaster } from "@utils";
 import AddDeviceFormContainer from "../../components/AddDeviceForm/AddDeviceForm.container";
 import { AleartPopupContainer } from "../../components/AlertPopup/AleartPopup.container";
 import ShowDevice from "../../components/ListDevice/ListDevice.container";
+import ShowSharedDevice from "../../components/ListDevice/ListSharedDevice.container";
+import FindSharedDevice from "../../components/ListDevice/FindSharedDevice.container";
 import { Container } from "react-bootstrap";
 import SolidAuth from "solid-auth-client";
 const defaultProfilePhoto = "/img/icon/empty-profile.svg";
@@ -225,11 +227,8 @@ export class WelcomeComponent extends Component<Props> {
             onNewDevice={this.addNewDevice}
           />
           <ShowDevice title="your devices" devices={this.state.devices} />
-          
-          {/* <ShowDevice
-            title="your shared devices"
-            devices={this.state.sharedDevices}
-          /> */}
+          <ShowSharedDevice title="shared device"  devices={this.state.sharedDevices} />
+          <FindSharedDevice />
         </Container>
       </>
     );
