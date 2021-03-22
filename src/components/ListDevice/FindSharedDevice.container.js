@@ -57,7 +57,7 @@ export default class FindSharedDeviceContaner extends Component {
     var transformedDevices = []
     searchedDivices.forEach((el) =>{
         el.devices.forEach((d) => {
-            transformedDevices.push({ "name" : d.title,"id": "123" ,"owner": el.owner })
+            transformedDevices.push({ "name" : d.title,"id": "123" ,"owner": el.owner, "desc" : d.description })
         });
     });
     console.log(transformedDevices)
@@ -93,7 +93,6 @@ export default class FindSharedDeviceContaner extends Component {
             </Form.Row>
           </Form>
 
-          {/* TODO: add template of device search  */}
           <ListGroup style={{ marginTop: "10px" }}>
             {this.state.devices.map((device) => (
                <DeviceSharedItem key={device.id} {...device} />
