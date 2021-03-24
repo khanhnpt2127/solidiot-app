@@ -48,6 +48,7 @@ export const checkPermissions = async (webId, errorMessage) => {
 export const checkOrSetInboxAppendPermissions = async (inboxPath, webId) => {
   // Fetch app permissions for the inbox and see if Append is there
   const inboxAcls = await ACLFactory.createNewAcl(webId, inboxPath);
+  console.log(inboxAcls);
   const permissions = await inboxAcls.getPermissions();
   const inboxPublicPermissions = permissions.filter(perm => perm.agents === null);
 
@@ -67,8 +68,10 @@ export const checkOrSetInboxAppendPermissions = async (inboxPath, webId) => {
       ];
       const ACLFile = await ACLFactory.createNewAcl(webId, inboxPath);
       await ACLFile.createACL(permissions);
+      console.log("ok nha ban oi")
     } catch (error) {
       // TODO: Better error handling here
+      console.log("err")
       throw error;
     }
   }

@@ -9,7 +9,9 @@ import ShowSharedDevice from "../../components/ListDevice/ListSharedDevice.conta
 import FindSharedDevice from "../../components/ListDevice/FindSharedDevice.container";
 import { Container } from "react-bootstrap";
 import SolidAuth from "solid-auth-client";
+import { AccessControlList, ACLFactory } from '@inrupt/solid-react-components';
 const defaultProfilePhoto = "/img/icon/empty-profile.svg";
+
 
 /**
  * Container component for the Welcome Page, containing example of how to fetch data from a POD
@@ -29,6 +31,24 @@ export class WelcomeComponent extends Component<Props> {
     };
     this.fetchCurrData();
     this.fetchSharedData();
+    this.grantNotificationPermission() 
+  }
+
+
+  async grantNotificationPermission() {
+    const { webId } = this.props;
+    var hostName = new URL(webId);
+
+    const permissions = [
+        {
+          agents: null,
+          modes: [AccessControlList.MODES.READ, AccessControlList.MODES.WRITE ]
+        }
+      ];
+      const ACLFile = await ACLFactory.createNewAcl(webId, `https://${hostName.hostname}/inbox/solidiot/`);
+      await ACLFile.createACL(permissions);
+    
+    
   }
 
   fetchSharedData() {
