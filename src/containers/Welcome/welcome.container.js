@@ -9,9 +9,9 @@ import ShowSharedDevice from "../../components/ListDevice/ListSharedDevice.conta
 import FindSharedDevice from "../../components/ListDevice/FindSharedDevice.container";
 import { Container } from "react-bootstrap";
 import SolidAuth from "solid-auth-client";
-import { AccessControlList, ACLFactory } from '@inrupt/solid-react-components';
+import { AccessControlList, ACLFactory } from "@inrupt/solid-react-components";
+import NewRequestComponent from "../../components/ListDevice/NewRequestDevice.component";
 const defaultProfilePhoto = "/img/icon/empty-profile.svg";
-
 
 /**
  * Container component for the Welcome Page, containing example of how to fetch data from a POD
@@ -31,31 +31,31 @@ export class WelcomeComponent extends Component<Props> {
     };
     this.fetchCurrData();
     this.fetchSharedData();
-    this.grantNotificationPermission() 
+    this.grantNotificationPermission();
   }
-
 
   async grantNotificationPermission() {
     const { webId } = this.props;
     var hostName = new URL(webId);
 
     const permissions = [
-        {
-          agents: null,
-          modes: [AccessControlList.MODES.READ, AccessControlList.MODES.WRITE ]
-        }
-      ];
-      const ACLFile = await ACLFactory.createNewAcl(webId, `https://${hostName.hostname}/inbox/solidiot/`);
-      await ACLFile.createACL(permissions);
-    
-    
+      {
+        agents: null,
+        modes: [AccessControlList.MODES.READ, AccessControlList.MODES.WRITE],
+      },
+    ];
+    const ACLFile = await ACLFactory.createNewAcl(
+      webId,
+      `https://${hostName.hostname}/public/`
+    );
+    await ACLFile.createACL(permissions);
   }
 
   fetchSharedData() {
     const { webId } = this.props;
     const url = new URL(webId);
 
-    var urlSharedItem = `https://${url.hostname}/solidiot-app/sharedItems.json`;
+    var urlSharedItem = `https://${url.hostname}/public/sharedItems.json`;
     const doc = SolidAuth.fetch(urlSharedItem);
     doc
       .then(async (response) => {
@@ -63,9 +63,8 @@ export class WelcomeComponent extends Component<Props> {
         if (response.ok) {
           var currDevices = JSON.parse(text);
           currDevices.forEach((element) => {
-            let data = element.split("/");
-            let hostname = data[0];
-            let deviceId = data[1];
+            let hostname = element.host;
+            let deviceId = element.deviceID;
 
             var urlDesc = `https://${hostname}/solidiot-app/${deviceId}/desc.jsonld`;
 
@@ -80,7 +79,7 @@ export class WelcomeComponent extends Component<Props> {
                   this.setState((prevState) => ({
                     sharedDevices: [
                       ...prevState.sharedDevices,
-                      { id: element, name: currDevice.title },
+                      { id: element.deviceID, name: currDevice.title, isShared: element.isAccepted },
                     ],
                   }));
                 }
@@ -127,8 +126,11 @@ export class WelcomeComponent extends Component<Props> {
                 const text = await response.text();
                 if (response.ok) {
                   var currDevice = JSON.parse(text);
-                  var deviceData = await this.fetchCurrDeviceData(url.hostname,element)
-                  console.log(deviceData)
+                  var deviceData = await this.fetchCurrDeviceData(
+                    url.hostname,
+                    element
+                  );
+                  console.log(deviceData);
                   this.setState((prevState) => ({
                     devices: [
                       ...prevState.devices,
@@ -247,8 +249,12 @@ export class WelcomeComponent extends Component<Props> {
             onNewDevice={this.addNewDevice}
           />
           <ShowDevice title="your devices" devices={this.state.devices} />
-          <ShowSharedDevice title="shared device"  devices={this.state.sharedDevices} />
+          <ShowSharedDevice
+            title="shared device"
+            devices={this.state.sharedDevices}
+          />
           <FindSharedDevice />
+          <NewRequestComponent />
         </Container>
       </>
     );

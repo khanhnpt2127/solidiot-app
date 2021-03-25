@@ -13,19 +13,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SolidAuth from "solid-auth-client";
 
 export default class DeviceSharedItem extends Component {
-
   checkDuplicateRequest(currDevice, newNotification) {
-               var i;
-               for (i = 0; i < currDevice.length; i++) {
-                    if (currDevice[i].host === newNotification.host) {
-                      newNotification.device.foreach((item) => {
-                        if(item === newNotification.device[0])
-                          return true;
-                      })
-                      return true;
-                    }
-                }
-                return false
+    var i;
+    for (i = 0; i < currDevice.length; i++) {
+      if (currDevice[i].host === newNotification.host) {
+        newNotification.device.foreach((item) => {
+          if (item === newNotification.device[0]) return true;
+        });
+        return true;
+      }
+    }
+    return false;
   }
 
   async handleSendRequest(event, deviceId, deviceOwner) {
@@ -48,25 +46,20 @@ export default class DeviceSharedItem extends Component {
                 host: session.webId,
                 isNew: true,
                 message: `A new request from ${session.webId}`,
-                device: [ `${deviceId}` ],
+                device: [`${deviceId}`],
               };
 
-
-
-
-              if(!this.checkDuplicateRequest(currDevice, newNotification))
-              {
+              if (!this.checkDuplicateRequest(currDevice, newNotification)) {
                 currDevice.push(newNotification);
 
                 const result = await SolidAuth.fetch(urlNotification, {
-                  method: 'PUT',
+                  method: "PUT",
                   headers: {
-                    'Content-Type': 'application/ld+json'
+                    "Content-Type": "application/ld+json",
                   },
-                  body: JSON.stringify(currDevice) 
+                  body: JSON.stringify(currDevice),
                 });
-                if (result.ok) 
-                  console.log("update ok")
+                if (result.ok) console.log("update ok");
               }
             }
           })
