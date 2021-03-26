@@ -57,7 +57,6 @@ export const createDocumentWithTurtle = async (documentUri, body = '') => {
 export const createNonExistentDocument = async (documentUri, body = '') => {
   try {
     const result = await documentExists(documentUri);
-
     return result.status === 404 ? createDocument(documentUri, body) : null;
   } catch (e) {
     throw e;

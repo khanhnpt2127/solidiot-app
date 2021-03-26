@@ -11,6 +11,7 @@ import { Container } from "react-bootstrap";
 import SolidAuth from "solid-auth-client";
 import { AccessControlList, ACLFactory } from "@inrupt/solid-react-components";
 import NewRequestComponent from "../../components/ListDevice/NewRequestDevice.component";
+import {createNonExistentDocument } from '../../utils/ldflex-helper'
 const defaultProfilePhoto = "/img/icon/empty-profile.svg";
 
 /**
@@ -29,10 +30,28 @@ export class WelcomeComponent extends Component<Props> {
       devices: [],
       sharedDevices: [],
     };
+    this.init()
+  }
+
+  async init() {
+    
+    const { webId } = this.props;
+    const url = new URL(webId);
+
+    var urlIndex = `https://${url.hostname}/solidiot-app/index.json`;
+    var urlSharedItem = `https://${url.hostname}/public/sharedItems.json`;
+    var urlNotification = `https://${url.hostname}/public/solidiotNotification.json`;
+    createNonExistentDocument(urlIndex, '[]');
+    createNonExistentDocument(urlSharedItem, '[]');
+    createNonExistentDocument(urlNotification, '[]');
+
     this.fetchCurrData();
     this.fetchSharedData();
     this.grantNotificationPermission();
   }
+
+
+
 
   async grantNotificationPermission() {
     const { webId } = this.props;

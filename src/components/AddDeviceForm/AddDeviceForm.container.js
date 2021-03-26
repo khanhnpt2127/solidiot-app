@@ -1,164 +1,256 @@
 import AddDeviceForm from "./AddDeviceForm.component";
 import React, { Component } from "react";
 import { Jumbotron, Container } from "react-bootstrap";
-import * as rs from '../../utils/resourceMessages'
-import { RegisterJob, listOfJob } from '../CronJob/cronJobServices'
-import SolidAuth from 'solid-auth-client';
-import { ldflexHelper, errorToaster } from '@utils';
-
-
-
+import * as rs from "../../utils/resourceMessages";
+import { RegisterJob, listOfJob } from "../CronJob/cronJobServices";
+import SolidAuth from "solid-auth-client";
+import { ldflexHelper, errorToaster } from "@utils";
+import axios from "axios";
 export default class AddDeviceFormContainer extends Component {
   state = {
     devices: [],
   };
-  
 
-  
-  createDeviceData = async (deviceData, deviceId,hostname) => {
+  createDeviceData = async (deviceData, deviceId, hostname) => {
     var urlData = `https://${hostname}/solidiot-app/${deviceId}/data.json`;
     const result = await SolidAuth.fetch(urlData, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body:deviceData 
+      body: deviceData,
     });
     if (result.ok) {
-      console.log("ok")
+      console.log("ok");
     } else if (result.ok === false) {
-      console.log(result.err)
+      console.log(result.err);
     }
-  }
+  };
 
-  writeIndexFile = async(data,hostname) => {
+  writeIndexFile = async (data, hostname) => {
     var urlIndex = `https://${hostname}/solidiot-app/index.json`;
     const result = await SolidAuth.fetch(urlIndex, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: data
+      body: data,
     });
     if (result.ok) {
-      console.log("ok")
+      console.log("ok");
     } else if (result.ok === false) {
-      console.log(result.err)
+      console.log(result.err);
     }
-  }
+  };
 
-  fetchIndexFile = async(newDeviceId, hostname) => {
+  fetchIndexFile = async (newDeviceId, hostname) => {
     var urlIndex = `https://${hostname}/solidiot-app/index.json`;
-    
+
     const result = await SolidAuth.fetch(urlIndex, {
       headers: {
-        'Content-Type': 'application/json'
-      }
+        "Content-Type": "application/json",
+      },
     });
 
     if (result.status === 404) {
       var data = [newDeviceId];
-      this.writeIndexFile(JSON.stringify(data),hostname);
+      this.writeIndexFile(JSON.stringify(data), hostname);
     } else {
       const doc = SolidAuth.fetch(urlIndex);
       doc
-        .then(async response => {
+        .then(async (response) => {
           const text = await response.text();
           if (response.ok) {
             var currDevices = JSON.parse(text);
+            
+            console.log(currDevices);
 
-            if(!currDevices.includes(newDeviceId))
+            if (!currDevices.includes(newDeviceId))
               currDevices.push(newDeviceId);
 
-            this.writeIndexFile(JSON.stringify(currDevices.filter(function (el) { return el != null; })),hostname);
-          } 
+            this.writeIndexFile(
+              JSON.stringify(
+                currDevices.filter(function(el) {
+                  return el != null;
+                })
+              ),
+              hostname
+            );
+          }
         })
-        .catch(() => {
-        });
+        .catch(() => {});
     }
-
-  }
+  };
 
   createDeviceTD = async (deviceTDString, deviceId, hostname) => {
     var urlDesc = `https://${hostname}/solidiot-app/${deviceId}/desc.jsonld`;
 
     const result = await SolidAuth.fetch(urlDesc, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/ld+json'
+        "Content-Type": "application/ld+json",
       },
-      body: deviceTDString
+      body: deviceTDString,
     });
     if (result.ok) {
-      this.fetchIndexFile(deviceId,hostname);
+      this.fetchIndexFile(deviceId, hostname);
     } else if (result.ok === false) {
-      console.log(result.err)
+      console.log(result.err);
     }
-  }
+  };
 
+  addNewDevice = async (deviceData, isSoIoT) => {
+    if (!isSoIoT) {
+      const found = this.state.devices.some(
+        (item) => deviceData.device.id == item.device.id
+      );
+      if (!found) {
+        this.setState((prevState) => ({
+          devices: [...prevState.devices, deviceData],
+        }));
+        //TODO: create file
+        SolidAuth.trackSession((session) => {
+          if (!session) console.log("The user is not logged in");
+          else {
+            const url = new URL(session.webId);
+            console.log(url.hostname);
+            var obj = {
+              "@context": "https://www.w3.org/2019/wot/td/v1",
+              id: "urn:dev:ops:32473-WoTLamp-1234",
+              title: "MyLampThing",
+              securityDefinitions: {
+                basic_sc: { scheme: "basic", in: "header" },
+              },
+              security: ["basic_sc"],
+              properties: {
+                status: {
+                  type: "string",
+                  forms: [{ href: "https://mylamp.example.com/status" }],
+                },
+              },
+              actions: {
+                toggle: {
+                  forms: [{ href: "https://mylamp.example.com/toggle" }],
+                },
+              },
+              events: {
+                overheating: {
+                  data: { type: "string" },
+                  forms: [
+                    {
+                      href: "https://mylamp.example.com/oh",
+                      subprotocol: "longpoll",
+                    },
+                  ],
+                },
+              },
+            };
+            this.createDeviceTD(
+              JSON.stringify(obj),
+              deviceData.device.id,
+              url.hostname
+            );
+            this.createDeviceData(
+              JSON.stringify(deviceData.data),
+              deviceData.device.id,
+              url.hostname
+            );
+          }
+        });
 
-  addNewDevice = async (deviceData) => {
-    const found = this.state.devices.some((item) => deviceData.device.id == item.device.id)
-    if(!found){
-      this.setState(prevState => ({
-        devices: [...prevState.devices, deviceData],
-      }));
-      //TODO: create file 
-      SolidAuth.trackSession(session => {
-      if (!session)
-        console.log('The user is not logged in')
-      else
-      {
-        const url = new URL(session.webId);
-        console.log(url.hostname)
-  var obj = {
-    "@context": "https://www.w3.org/2019/wot/td/v1",
-    "id": "urn:dev:ops:32473-WoTLamp-1234",
-    "title": "MyLampThing",
-    "securityDefinitions": {
-        "basic_sc": {"scheme": "basic", "in":"header"}
-    },
-    "security": ["basic_sc"],
-    "properties": {
-        "status" : {
-            "type": "string",
-            "forms": [{"href": "https://mylamp.example.com/status"}]
-        }
-    },
-    "actions": {
-        "toggle" : {
-            "forms": [{"href": "https://mylamp.example.com/toggle"}]
-        }
-    },
-    "events":{
-        "overheating":{
-            "data": {"type": "string"},
-            "forms": [{
-                "href": "https://mylamp.example.com/oh",
-                "subprotocol": "longpoll"
-            }]
-        }
-    }
-};
-        this.createDeviceTD(JSON.stringify(obj),deviceData.device.id, url.hostname);
-        this.createDeviceData(JSON.stringify(deviceData.data),deviceData.device.id,url.hostname);
-
-
+        RegisterJob(deviceData.device.id, deviceData.device.id);
+        this.props.onNewDevice({
+          id: deviceData.device.id,
+          name: deviceData.device.deviceName,
+        });
+      } else {
+        this.props.messages(rs.DUPLICATE_INVALID);
       }
-    })
-  
-
-
-   
-      RegisterJob(deviceData.device.id, deviceData.device.id);
-      this.props.onNewDevice({ id: deviceData.device.id, name: deviceData.device.deviceName });
     } else {
-      this.props.messages(rs.DUPLICATE_INVALID);
+      var devices = deviceData.lists;
+
+      var objTemp = {
+        "@context": "https://www.w3.org/2019/wot/td/v1",
+        id: "urn:dev:ops:32473-WoTLamp-1234",
+        title: "MyLampThing",
+        securityDefinitions: {
+          basic_sc: { scheme: "basic", in: "header" },
+        },
+        security: ["basic_sc"],
+        properties: {
+          status: {
+            type: "string",
+            forms: [{ href: "https://mylamp.example.com/status" }],
+          },
+        },
+        actions: {
+          toggle: {
+            forms: [{ href: "https://mylamp.example.com/toggle" }],
+          },
+        },
+        events: {
+          overheating: {
+            data: { type: "string" },
+            forms: [
+              {
+                href: "https://mylamp.example.com/oh",
+                subprotocol: "longpoll",
+              },
+            ],
+          },
+        },
+      };
+
+      SolidAuth.trackSession(async (session) => {
+        if (!session) console.log("The user is not logged in");
+        else {
+          const url = new URL(session.webId);
+
+          var urlIndex = `https://${url.hostname}/solidiot-app/index.json`;
+          const doc = SolidAuth.fetch(urlIndex);
+
+          await doc.then(async (response) => {
+            const text = await response.text();
+            if (response.ok) {
+              var currDevices = JSON.parse(text);
+
+              devices.forEach(async(item) => {
+                var itemInTD = objTemp;
+                itemInTD.id = item.id;
+                itemInTD.title = item.name;
+
+                const found = currDevices.some((i) => item.id === i)
+                if(!found) {
+                  this.createDeviceTD(
+                    JSON.stringify(itemInTD),
+                    item.id,
+                    url.hostname
+                  );
+                  // 2 - fetch data 
+                  const resp = await axios.get(`https://localhost:44312/api/Devices/${item.id}`);
+
+                  this.createDeviceData(
+                    JSON.stringify(resp.data.data),
+                    item.id,
+                    url.hostname
+                  )
+                  //RegisterJob(deviceData.device.id, deviceData.device.id);
+                  this.props.onNewDevice({
+                    id: item.id,
+                    name: item.name,
+                  });
+                }
+              });
+
+
+            }
+          });
+        }
+      });
     }
   };
 
   render() {
-
     return (
       <Container>
         <Jumbotron>

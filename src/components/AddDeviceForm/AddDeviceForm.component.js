@@ -59,8 +59,17 @@ export default class AddDeviceForm extends Component {
     this.props.onSubmit(resp.data);
     this.setState({host: ''})
   };
+
+  handleSoIoT = async (event) => {
+    event.preventDefault();
+    const resp = await axios.get("https://localhost:44312/api/Devices");
+    this.props.onSubmit(resp.data,true);
+  }
+
+
   render() {
     return (
+      <>
       <Form onSubmit={this.handleSubmit}> 
         <Form.Row>
           <Col>
@@ -70,9 +79,11 @@ export default class AddDeviceForm extends Component {
           </Col>
           <Col>
             <Button variant="primary" type="submit">Add Device</Button>
+            <Button variant="success" style={{"marginLeft" : "5px"}} onClick={this.handleSoIoT}>SoIoT Repository</Button>
           </Col>
         </Form.Row>
       </Form>
+      </>
     );
   }
 }

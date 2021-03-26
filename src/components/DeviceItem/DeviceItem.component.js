@@ -45,9 +45,6 @@ export default class DeviceItem extends Component {
                 </Accordion.Toggle>
               </Col>
               <Col sm={4}>
-                <Button variant="secondary" className="float-right">
-                  <FontAwesomeIcon icon="cog" />
-                </Button>
               </Col>
             </Row>
             
