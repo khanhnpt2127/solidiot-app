@@ -48,6 +48,7 @@ export class WelcomeComponent extends Component<Props> {
     this.fetchCurrData();
     this.fetchSharedData();
     this.grantNotificationPermission();
+
   }
 
 

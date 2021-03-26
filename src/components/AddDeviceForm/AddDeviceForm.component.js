@@ -63,7 +63,7 @@ export default class AddDeviceForm extends Component {
   handleSoIoT = async (event) => {
     event.preventDefault();
     const resp = await axios.get("https://localhost:44312/api/Devices");
-    this.props.onSubmit(resp.data,true);
+    await this.props.onSubmit(resp.data,true);
   }
 
 

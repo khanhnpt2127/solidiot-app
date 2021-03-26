@@ -57,7 +57,7 @@ export default class AddDeviceFormContainer extends Component {
       this.writeIndexFile(JSON.stringify(data), hostname);
     } else {
       const doc = SolidAuth.fetch(urlIndex);
-      doc
+      await doc
         .then(async (response) => {
           const text = await response.text();
           if (response.ok) {
@@ -68,12 +68,10 @@ export default class AddDeviceFormContainer extends Component {
             if (!currDevices.includes(newDeviceId))
               currDevices.push(newDeviceId);
 
-            this.writeIndexFile(
-              JSON.stringify(
-                currDevices.filter(function(el) {
-                  return el != null;
-                })
-              ),
+            console.log(currDevices);
+
+            await this.writeIndexFile(
+              JSON.stringify(currDevices),
               hostname
             );
           }
@@ -93,7 +91,7 @@ export default class AddDeviceFormContainer extends Component {
       body: deviceTDString,
     });
     if (result.ok) {
-      this.fetchIndexFile(deviceId, hostname);
+      await this.fetchIndexFile(deviceId, hostname);
     } else if (result.ok === false) {
       console.log(result.err);
     }
@@ -214,33 +212,42 @@ export default class AddDeviceFormContainer extends Component {
             if (response.ok) {
               var currDevices = JSON.parse(text);
 
-              devices.forEach(async(item) => {
-                var itemInTD = objTemp;
-                itemInTD.id = item.id;
-                itemInTD.title = item.name;
+              for(let dev of devices) {
 
-                const found = currDevices.some((i) => item.id === i)
+
+                var itemInTD = objTemp;
+                itemInTD.id = dev.id;
+                itemInTD.title = dev.name;
+
+
+                const found = currDevices.some((i) => dev.id === i)
+                
+
                 if(!found) {
-                  this.createDeviceTD(
+                  await this.createDeviceTD(
                     JSON.stringify(itemInTD),
-                    item.id,
+                    dev.id,
                     url.hostname
                   );
                   // 2 - fetch data 
-                  const resp = await axios.get(`https://localhost:44312/api/Devices/${item.id}`);
+                  const resp = await axios.get(`https://localhost:44312/api/Devices/${dev.id}`);
 
-                  this.createDeviceData(
+                  await this.createDeviceData(
                     JSON.stringify(resp.data.data),
-                    item.id,
+                    dev.id,
                     url.hostname
                   )
                   //RegisterJob(deviceData.device.id, deviceData.device.id);
                   this.props.onNewDevice({
-                    id: item.id,
-                    name: item.name,
+                    id: dev.id,
+                    name: dev.name,
                   });
+                  window.location.reload();
+                  break;
                 }
-              });
+              }
+
+
 
 
             }
