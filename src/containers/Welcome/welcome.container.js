@@ -175,7 +175,7 @@ export class WelcomeComponent extends Component<Props> {
                   this.setState((prevState) => ({
                     devices: [
                       ...prevState.devices,
-                      { id: element, name: currDevice.title, data: deviceData , settings: currSetting === undefined ? {} : currSetting },
+                      { id: element, name: currDevice.title,rawDesc: currDevice ,data: deviceData , settings: currSetting === undefined ? {} : currSetting },
                     ],
                   }));
                 }
