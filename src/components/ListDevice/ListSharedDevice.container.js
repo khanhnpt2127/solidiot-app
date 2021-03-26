@@ -21,7 +21,7 @@ const ListSharedDeviceContaner = (props) => {
 
         <ListGroup>
           {props.devices.map((device) => (
-            <DeviceItem key={device.id} {...device} />
+            <DeviceSharedItem key={device.id} {...device} />
           ))}
         </ListGroup>
         {props.devices.length == 0 && (

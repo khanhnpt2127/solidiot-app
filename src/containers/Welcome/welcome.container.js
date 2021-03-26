@@ -65,7 +65,6 @@ export class WelcomeComponent extends Component<Props> {
           currDevices.forEach((element) => {
             let hostname = element.host;
             let deviceId = element.deviceID;
-
             var urlDesc = `https://${hostname}/solidiot-app/${deviceId}/desc.jsonld`;
 
             const doc = SolidAuth.fetch(urlDesc);
@@ -75,11 +74,10 @@ export class WelcomeComponent extends Component<Props> {
                 const text = await response.text();
                 if (response.ok) {
                   var currDevice = JSON.parse(text);
-
                   this.setState((prevState) => ({
                     sharedDevices: [
                       ...prevState.sharedDevices,
-                      { id: element.deviceID, name: currDevice.title, isShared: element.isAccepted },
+                      { id: element.deviceID, desc: currDevice.description ,name: currDevice.title, owner: element.host ,isShared: element.isAccepted },
                     ],
                   }));
                 }

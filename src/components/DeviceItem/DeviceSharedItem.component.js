@@ -70,75 +70,94 @@ export default class DeviceSharedItem extends Component {
 
   render() {
     const device = this.props;
-    console.log(device);
     return (
-      <ListGroup.Item variant="success">
-        <Container>
-          <Accordion defaultActiveKey="1">
-            <Row>
-              <Col sm={8} style={{ margin: "auto" }}>
-                <OverlayTrigger
-                  key="top"
-                  placement="top"
-                  overlay={
-                    <Tooltip id={`tooltip-top}`}> click to deactive </Tooltip>
-                  }
-                >
-                  <Button
-                    variant="success"
-                    style={{ minHeight: "26px" }}
-                  ></Button>
-                </OverlayTrigger>
-
-                <Accordion.Toggle
-                  style={{ color: "#388E3C" }}
-                  as={Button}
-                  variant="link"
-                  eventKey="0"
-                >
-                  <span style={{ marginLeft: "5px" }}>
-                    {" "}
-                    {device.name} - {device.owner}{" "}
-                  </span>
-                </Accordion.Toggle>
-              </Col>
-              <Col sm={4}>
-                <Button
-                  onClick={(e) => {
-                    this.handleSendRequest(e, device.id, device.owner);
-                  }}
-                  variant="success"
-                  className="float-right"
-                >
-                  Send Request
-                </Button>
-              </Col>
-            </Row>
-
-            <Accordion.Collapse eventKey="0">
+      <>
+        <ListGroup.Item
+          variant={device.isShared == true ? "success" : "warning"}
+        >
+          <Container>
+            <Accordion defaultActiveKey="1">
               <Row>
-                <Col sm={12}>
-                  <h6 style={{ textTransform: "lowercase", fontSize: "12px" }}>
-                    description:
-                  </h6>
-                  <p
-                    style={{
-                      backgroundColor: "rgb(50, 41, 49)",
-                      color: "white",
-                      padding: "10px",
-                      fontSize: "14px",
-                      borderRadius: "5px",
-                    }}
+                <Col sm={8} style={{ margin: "auto" }}>
+                  <OverlayTrigger
+                    key="top"
+                    placement="top"
+                    overlay={
+                      <Tooltip id={`tooltip-top}`}> click to deactive </Tooltip>
+                    }
                   >
-                    {" "}
-                    {device.desc}{" "}
-                  </p>
+                    <Button
+                      variant={device.isShared == true ? "success" : "warning"}
+                      style={{ minHeight: "26px" }}
+                    ></Button>
+                  </OverlayTrigger>
+
+                  <Accordion.Toggle
+                    style={{
+                      color: device.isShared == true ? "#388E3C" : "#856404",
+                    }}
+                    as={Button}
+                    variant="link"
+                    eventKey="0"
+                  >
+                    <span style={{ marginLeft: "5px" }}>
+                      {" "}
+                      {device.name} - {device.owner}{" "}
+                    </span>
+                  </Accordion.Toggle>
+                </Col>
+                <Col sm={4}>
+                  {device.isShared == false ? (
+                    <Button
+                      onClick={(e) => {
+                        this.handleSendRequest(e, device.id, device.owner);
+                      }}
+                      variant={device.isShared == true ? "success" : "warning"}
+                      className="float-right"
+                    >
+                      Send Request
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="success"
+                      disabled
+                      className="float-right"
+                    >
+                      Accepted Request
+                    </Button>
+                  )}
                 </Col>
               </Row>
-            </Accordion.Collapse>
-          </Accordion>
-        </Container>
-      </ListGroup.Item>
+
+              <Accordion.Collapse eventKey="0">
+                <Row>
+                  {device.desc && (
+                    <Col sm={12}>
+                      <h6
+                        style={{ textTransform: "lowercase", fontSize: "12px" }}
+                      >
+                        description:
+                      </h6>
+                      <p
+                        style={{
+                          backgroundColor: "rgb(50, 41, 49)",
+                          color: "white",
+                          padding: "10px",
+                          fontSize: "14px",
+                          borderRadius: "5px",
+                        }}
+                      >
+                        {" "}
+                        {device.desc}{" "}
+                      </p>
+                    </Col>
+                  )}
+                </Row>
+              </Accordion.Collapse>
+            </Accordion>
+          </Container>
+        </ListGroup.Item>
+      </>
     );
   }
 }
