@@ -12,7 +12,7 @@ import {
 import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import DeviceItem from "../DeviceItem/DeviceItem.component";
-import DeviceSharedItem from "../DeviceItem/DeviceSharedItem.component";
+import DeviceFindShared from "../DeviceItem/DeviceFindSharedItem.component";
 import { Component } from "react";
 import SolidAuth from "solid-auth-client";
 
@@ -95,7 +95,7 @@ export default class FindSharedDeviceContaner extends Component {
 
           <ListGroup style={{ marginTop: "10px" }}>
             {this.state.devices.map((device) => (
-               <DeviceSharedItem key={device.id} {...device} />
+               <DeviceFindShared key={device.id} {...device} />
             ))}
           </ListGroup>
           {this.state.devices.length == 0 && (

@@ -43,6 +43,24 @@ export default class AddDeviceFormContainer extends Component {
     }
   };
 
+  writeIndexSettingFile = async(data, hostname) => {
+    var urlIndex = `https://${hostname}/solidiot-app/indexSettings.json`;
+    const result = await SolidAuth.fetch(urlIndex, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: data,
+    });
+
+    if (result.ok) {
+      console.log("ok");
+    } else if (result.ok === false) {
+      console.log(result.err);
+    }
+  }
+
+
   fetchIndexFile = async (newDeviceId, hostname) => {
     var urlIndex = `https://${hostname}/solidiot-app/index.json`;
 
@@ -74,6 +92,21 @@ export default class AddDeviceFormContainer extends Component {
               JSON.stringify(currDevices),
               hostname
             );
+            
+            var urlIndexSetting =  `https://${hostname}/solidiot-app/indexSettings.json`;
+            
+            const docSetting = SolidAuth.fetch(urlIndexSetting);
+            await docSetting.then(async (res) => {
+              var curr = await res.text();
+              var currSetting = JSON.parse(curr);
+              var newSetting = {
+                "id" : newDeviceId,
+                "isSearchable" : false,
+                "sharedPeople" : []
+              }
+              currSetting.push(newSetting);
+              await this.writeIndexSettingFile(JSON.stringify(currSetting),hostname);
+            })
           }
         })
         .catch(() => {});
