@@ -29,6 +29,7 @@ export class WelcomeComponent extends Component<Props> {
       errMess: "",
       devices: [],
       sharedDevices: [],
+      currSettings: []
     };
     this.init()
   }
@@ -47,6 +48,7 @@ export class WelcomeComponent extends Component<Props> {
 
     this.fetchCurrData();
     this.fetchSharedData();
+    this.fetchDeviceSettings();
     this.grantNotificationPermission();
 
   }
@@ -124,6 +126,21 @@ export class WelcomeComponent extends Component<Props> {
     return dData;
   }
 
+  async fetchDeviceSettings(){
+    const { webId } = this.props;
+    const url = new URL(webId);
+
+    var urlIndexSetting =  `https://${url.hostname}/solidiot-app/indexSettings.json`;
+    const doc = SolidAuth.fetch(urlIndexSetting);
+    await doc.then(async (res) => {
+      const text = await res.text();
+      if(res.ok){
+        var currSettings = JSON.parse(text);
+        this.setState({currSettings : currSettings })
+      }
+    });
+  }
+
   async fetchCurrData() {
     const { webId } = this.props;
     const url = new URL(webId);
@@ -149,10 +166,16 @@ export class WelcomeComponent extends Component<Props> {
                     element
                   );
                   console.log(deviceData);
+                  
+                  var currSetting;
+                  this.state.currSettings.forEach((e) => {
+                    if(e.id === element) { currSetting = e}
+                  });
+
                   this.setState((prevState) => ({
                     devices: [
                       ...prevState.devices,
-                      { id: element, name: currDevice.title, data: deviceData },
+                      { id: element, name: currDevice.title, data: deviceData , settings: currSetting === undefined ? {} : currSetting },
                     ],
                   }));
                 }

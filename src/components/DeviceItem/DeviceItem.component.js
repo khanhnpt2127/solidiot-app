@@ -18,24 +18,66 @@ import { atomOneDark } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import JSONPretty from "react-json-pretty";
 import ReactJson from "react-json-view";
 import Switch from "react-switch";
-export default class DeviceItem extends Component {
-  constructor(){
-    super();
-    this.state = { checked: false };
+import SolidAuth from "solid-auth-client";
+export default class DeviceItem extends Component<Props> {
+  constructor(props){
+    super(props);
+    this.state = { checked: this.props.settings.isSearchable === undefined ? false : this.props.settings.isSearchable };
     this.handleChange = this.handleChange.bind(this);
   }
 
-  handleChange(checked) {
+
+  async writeToSetting(checked) {
+
+        SolidAuth.trackSession(async (session) => {
+          if(!session)
+            console.log("not login")
+          else{
+            
+            const url = new URL(session.webId);
+            var urlIndexSetting =  `https://${url.hostname}/solidiot-app/indexSettings.json`;
+
+            const doc = SolidAuth.fetch(urlIndexSetting);
+
+            await doc.then(async (res) => {
+              const text = await res.text();
+              if(res.ok){
+                var currSettings = JSON.parse(text);
+
+                currSettings.forEach((e) => {
+                  if(e.id === this.props.id) {
+                    e.isSearchable = checked
+                    console.log(e)
+                  }
+                })
+                
+                const result = await SolidAuth.fetch(urlIndexSetting, {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(currSettings),
+                });
+              }
+            });
+
+          }
+        })
+  }
+
+
+  async handleChange(checked) {
     if(checked) {
       // write to solidiot 
+      this.writeToSetting(checked)
     } else {
       // remove to solidiot
+      this.writeToSetting(checked)
     }
     this.setState({ checked });
   }
 
   render() {
-    const codeString = "var num = 1+1; ";
     const device = this.props;
     return (
       <ListGroup.Item variant="success">
