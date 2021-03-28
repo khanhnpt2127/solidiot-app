@@ -99,7 +99,7 @@ export default class DeviceRequestItem extends Component {
                   >
                     <span style={{ marginLeft: "5px" }}>
                       {" "}
-                      {device.device[0]} - {device.host}{" "}
+                      {device.host}{" "}
                     </span>
                   </Accordion.Toggle>
                 </Col>
@@ -137,7 +137,7 @@ export default class DeviceRequestItem extends Component {
                         borderRadius: "5px",
                       }}
                     >
-                      {device.message}
+                      {device.message} - device ID: {device.device[0]} 
                     </p>
                   </Col>
                 </Row>

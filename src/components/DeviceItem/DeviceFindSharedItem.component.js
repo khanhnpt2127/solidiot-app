@@ -33,13 +33,14 @@ export default class DeviceFindSharedItem extends Component {
     SolidAuth.trackSession((session) => {
       if (!session) console.log("The user is not logged in");
       else {
-        var urlNotification = `${deviceOwner}public/solidiotNotification.json`;
 
+        var url = new URL(deviceOwner);
+        var urlNotification = `https://${url.hostname}/public/solidiotNotification.json`;
         const doc = SolidAuth.fetch(urlNotification);
-
         doc
           .then(async (response) => {
             const text = await response.text();
+            console.log(text);
             if (response.ok) {
               var currDevice = JSON.parse(text);
               var newNotification = {
@@ -63,7 +64,7 @@ export default class DeviceFindSharedItem extends Component {
               }
             }
           })
-          .catch(() => {});
+          .catch((e) => { console.log(e)});
       }
     });
   }
