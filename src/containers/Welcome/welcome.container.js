@@ -12,6 +12,8 @@ import SolidAuth from "solid-auth-client";
 import { AccessControlList, ACLFactory } from "@inrupt/solid-react-components";
 import NewRequestComponent from "../../components/ListDevice/NewRequestDevice.component";
 import {createNonExistentDocument } from '../../utils/ldflex-helper'
+import Cookies from 'universal-cookie';
+
 const defaultProfilePhoto = "/img/icon/empty-profile.svg";
 
 /**
@@ -42,18 +44,23 @@ export class WelcomeComponent extends Component<Props> {
     var urlIndex = `https://${url.hostname}/solidiot-app/index.json`;
     var urlSharedItem = `https://${url.hostname}/public/sharedItems.json`;
     var urlNotification = `https://${url.hostname}/public/solidiotNotification.json`;
+    var urlIndexSetting = `https://${url.hostname}/solidiot-app/indexSettings.json `
     createNonExistentDocument(urlIndex, '[]');
     createNonExistentDocument(urlSharedItem, '[]');
     createNonExistentDocument(urlNotification, '[]');
+    createNonExistentDocument(urlIndexSetting, '[]');
 
+    const cookies = new Cookies();
+    if (!cookies.get("isFirtTime")) {
+      cookies.set("isFirtTime", "false", { path: "/" });
+      window.location.reload();
+    }
     this.fetchCurrData();
     this.fetchSharedData();
     this.fetchDeviceSettings();
     this.grantNotificationPermission();
 
   }
-
-
 
 
   async grantNotificationPermission() {
