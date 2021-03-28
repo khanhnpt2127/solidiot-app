@@ -45,7 +45,10 @@ export default class FindSharedDeviceContaner extends Component {
   handleSubmit = async (event) => {
     event.preventDefault();
     var searchedDivices = []
+    SolidAuth.trackSession(async (session) => {
+
     this.state.searchData.forEach((element) => {
+        if(element.owner !== session.webId)
         element.devices.forEach((el) => {
             console.log(el);
             if(el.title.toLowerCase().includes(this.state.searchString.toLowerCase())) {
@@ -74,7 +77,7 @@ export default class FindSharedDeviceContaner extends Component {
         });
     });
     console.log(transformedDevices)
-    this.setState({devices: transformedDevices});
+    this.setState({devices: transformedDevices}); });
   };
 
   render() {
