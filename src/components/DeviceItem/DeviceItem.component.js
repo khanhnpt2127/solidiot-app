@@ -49,16 +49,18 @@ export default class DeviceItem extends Component<Props> {
       const urlPublic =
         "https://solidiot.inrupt.net/public/solidiotPublic.json";
       const url = new URL(session.webId);
+      console.log(url)
       const doc = SolidAuth.fetch(urlPublic);
       doc
         .then(async (response) => {
           const text = await response.text();
           var currSharedItems = JSON.parse(text);
-
+            
           var deviceOwner = currSharedItems.find(
             (e) => e.owner === session.webId
           );
-          if (deviceOwner.owner !== "") {
+          console.log(deviceOwner);
+          if (deviceOwner !== undefined && deviceOwner.owner !== "") {
             deviceOwner.devices.push(this.props.rawDesc);
             await this.writeToPublic(currSharedItems);
           } else {

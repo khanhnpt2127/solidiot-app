@@ -49,8 +49,21 @@ export default class FindSharedDeviceContaner extends Component {
         element.devices.forEach((el) => {
             console.log(el);
             if(el.title.toLowerCase().includes(this.state.searchString.toLowerCase())) {
-                console.log(element);
-                searchedDivices.push(element);
+
+                var existedOwnerInSearchDevice = searchedDivices.find((d) => d.owner === element.owner);
+                if(existedOwnerInSearchDevice){
+                  existedOwnerInSearchDevice.devices.push(el);
+                } else {
+                  var newOwner = {
+                    "owner": element.owner,
+                    "devices": []
+                  }
+                  newOwner.devices.push(el);
+                  searchedDivices.push(newOwner);
+
+                }
+
+                console.log(searchedDivices);
             }
         });
     });
@@ -95,7 +108,7 @@ export default class FindSharedDeviceContaner extends Component {
 
           <ListGroup style={{ marginTop: "10px" }}>
             {this.state.devices.map((device) => (
-               <DeviceFindShared key={device.id} {...device} />
+               <DeviceFindShared key={device.id + device.owner}  {...device} />
             ))}
           </ListGroup>
           {this.state.devices.length == 0 && (
