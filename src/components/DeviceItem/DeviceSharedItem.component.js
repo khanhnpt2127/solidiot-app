@@ -64,6 +64,37 @@ export default class DeviceSharedItem extends Component {
             }
           })
           .catch(() => {});
+
+        /*
+        // create SharedItem 
+        var url = new URL(session.webId)
+        var urlSharedItem = `https://${url.hostname}/public/sharedItems.json`;
+        const doc = SolidAuth.fetch(urlSharedItem);
+
+        doc
+        .then(async (response) => {
+          const text = await response.text();
+          var sharedItem = JSON.parse(text);
+
+          var newSharedItem = {
+            "host" : 
+          }
+
+          const result = await SolidAuth.fetch(urlSharedItem, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/ld+json",
+            },
+            body: JSON.stringify(sharedItem),
+          });
+          if (result.ok) {
+            console.log("ok");
+          } else if (result.ok === false) {
+            console.log(result.err);
+          }
+        })
+        .catch((e) => {console.log(e)});
+        */
       }
     });
   }

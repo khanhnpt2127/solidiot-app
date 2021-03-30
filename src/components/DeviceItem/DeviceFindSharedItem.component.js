@@ -14,17 +14,22 @@ import SolidAuth from "solid-auth-client";
 
 export default class DeviceFindSharedItem extends Component {
   checkDuplicateRequest(currDevice, newNotification) {
-    var i;
-    for (i = 0; i < currDevice.length; i++) {
-      if (currDevice[i].host === newNotification.host) {
-        newNotification.device.foreach((item) => {
-          if (item === newNotification.device[0]) return true;
-        });
-        return true;
-      }
+    var findNewInCurr = currDevice.find((x) => x.host === newNotification.host);
+    if(findNewInCurr) {
+      var curr = findNewInCurr.device.find((y) => y === newNotification.device[0]);
+      if(curr) { 
+        return true; }
     }
     return false;
   }
+
+  checkDuplicateSharedItem(currSharedItem, newSharedItem) {
+
+    var curr =  currSharedItem.find((x) => x.host === newSharedItem.host && x.deviceID === newSharedItem.deviceID)
+    if(curr) return true;
+    return false
+  }
+
 
   async handleSendRequest(event, deviceId, deviceOwner) {
     event.preventDefault();
@@ -49,7 +54,6 @@ export default class DeviceFindSharedItem extends Component {
                 message: `A new request from ${session.webId}`,
                 device: [`${deviceId}`],
               };
-
               if (!this.checkDuplicateRequest(currDevice, newNotification)) {
                 currDevice.push(newNotification);
 
@@ -65,6 +69,41 @@ export default class DeviceFindSharedItem extends Component {
             }
           })
           .catch((e) => { console.log(e)});
+
+
+        var urlUr = new URL(session.webId)
+        var urlSharedItem = `https://${urlUr.hostname}/public/sharedItems.json`;
+        const docUr = SolidAuth.fetch(urlSharedItem);
+
+        docUr
+        .then(async (response) => {
+          const text = await response.text();
+          var sharedItem = JSON.parse(text);
+
+          var newSharedItem = {
+            "host" : deviceOwner,
+            "deviceID" :deviceId,
+            "isAccepted" : false 
+          }
+          var sharedItem = []
+          if(!this.checkDuplicateSharedItem(sharedItem, newSharedItem))
+            sharedItem.push(newSharedItem)
+
+          const result = await SolidAuth.fetch(urlSharedItem, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/ld+json",
+            },
+            body: JSON.stringify(sharedItem),
+          });
+          if (result.ok) {
+            console.log("ok");
+          } else if (result.ok === false) {
+            console.log(result.err);
+          }
+        })
+        .catch((e) => {console.log(e)});
+
       }
     });
   }

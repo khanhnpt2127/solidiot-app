@@ -26,7 +26,7 @@ export default class DeviceRequestItem extends Component {
         var hostName = new URL(webId);
         const permissions = [
           {
-            agents: webId,
+            agents: deviceRequester,
             modes: [AccessControlList.MODES.READ],
           },
         ];
@@ -36,6 +36,7 @@ export default class DeviceRequestItem extends Component {
           `https://${hostName.hostname}/solidiot-app/${deviceId}/data.json`
         );
         await ACLFile.createACL(permissions);
+        console.log("ok create acl")
         // TODO: check ACL is successful
         // 3 - notify sharedItem
         var url = new URL(deviceRequester);
@@ -48,9 +49,8 @@ export default class DeviceRequestItem extends Component {
             const text = await response.text();
             var sharedItem = JSON.parse(text);
 
-            sharedItem.foreach((item) => {
-              if (item.deviceID === deviceId) item.isAccepted = true;
-            });
+            
+
             const result = await SolidAuth.fetch(urlSharedItem, {
               method: "PUT",
               headers: {
@@ -64,8 +64,10 @@ export default class DeviceRequestItem extends Component {
               console.log(result.err);
             }
           })
-          .catch(() => {});
+          .catch((e) => {console.log(e)});
+
       }
+      // 4 - close request 
     });
   }
 
