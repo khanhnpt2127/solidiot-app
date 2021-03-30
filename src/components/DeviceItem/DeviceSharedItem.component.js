@@ -11,7 +11,7 @@ import {
 import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SolidAuth from "solid-auth-client";
-
+import ReactJson from "react-json-view";
 export default class DeviceSharedItem extends Component {
   checkDuplicateRequest(currDevice, newNotification) {
     var i;
@@ -145,15 +145,12 @@ export default class DeviceSharedItem extends Component {
                       }}
                       variant={device.isShared == true ? "success" : "warning"}
                       className="float-right"
+                      disabled
                     >
                       Send Request
                     </Button>
                   ) : (
-                    <Button
-                      variant="success"
-                      disabled
-                      className="float-right"
-                    >
+                    <Button variant="success" disabled className="float-right">
                       Accepted Request
                     </Button>
                   )}
@@ -181,6 +178,30 @@ export default class DeviceSharedItem extends Component {
                         {" "}
                         {device.desc}{" "}
                       </p>
+                    </Col>
+                  )}
+                </Row>
+              </Accordion.Collapse>
+
+              <Accordion.Collapse eventKey="0">
+                <Row>
+                  {device.data && (
+                    <Col sm={12}>
+                      <h6
+                        style={{ textTransform: "lowercase", fontSize: "12px" }}
+                      >
+                        data:
+                      </h6>
+                      <ReactJson
+                        src={device.data}
+                        iconStyle="circle"
+                        collapsed="1"
+                        onAdd="false"
+                        displayDataTypes="false"
+                        onDelete="false"
+                        name={device.name}
+                        theme="hopscotch"
+                      />
                     </Col>
                   )}
                 </Row>

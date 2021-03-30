@@ -92,9 +92,11 @@ export class WelcomeComponent extends Component<Props> {
         if (response.ok) {
           var currDevices = JSON.parse(text);
           currDevices.forEach((element) => {
+            if(element.isAccepted) {
             let hostname = element.host;
             let deviceId = element.deviceID;
-            var urlDesc = `https://${hostname}/solidiot-app/${deviceId}/desc.jsonld`;
+            var urlHostname = new URL(hostname);
+            var urlDesc = `https://${urlHostname.hostname}/solidiot-app/${deviceId}/desc.jsonld`;
 
             const doc = SolidAuth.fetch(urlDesc);
 
@@ -103,15 +105,36 @@ export class WelcomeComponent extends Component<Props> {
                 const text = await response.text();
                 if (response.ok) {
                   var currDevice = JSON.parse(text);
+
+                  var urlData = `https://${urlHostname.hostname}/solidiot-app/${deviceId}/data.json`;
+                  
+                  const docData = SolidAuth.fetch(urlData);
+                  docData.then(async (res) => {
+
+                    const textData = await res.text();
+                    var deviceData = JSON.parse(textData);
+                    this.setState((prevState) => ({
+                      sharedDevices: [
+                        ...prevState.sharedDevices,
+                        { id: element.deviceID, data: deviceData , desc: currDevice.description ,name: currDevice.title, owner: element.host ,isShared: element.isAccepted },
+                      ],
+                    }));
+                  });
+
+
+
+                    
+                }
+              })
+              .catch((e) => { console.log(e)});
+            } else {
                   this.setState((prevState) => ({
                     sharedDevices: [
                       ...prevState.sharedDevices,
-                      { id: element.deviceID, desc: currDevice.description ,name: currDevice.title, owner: element.host ,isShared: element.isAccepted },
+                      { id: element.deviceID, desc: "",name: "waiting for owner's acceptance", owner: element.host ,isShared: element.isAccepted },
                     ],
                   }));
-                }
-              })
-              .catch(() => {});
+            }
           });
         }
       })
