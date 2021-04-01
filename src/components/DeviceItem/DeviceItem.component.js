@@ -21,6 +21,7 @@ import Switch from "react-switch";
 import SolidAuth from "solid-auth-client";
 import { session } from "rdf-namespaces/dist/link";
 import DeviceSharedWhom from "./DeviceSharedWhom.component";
+import { AccessControlList, ACLFactory } from "@inrupt/solid-react-components";
 export default class DeviceItem extends Component<Props> {
   constructor(props) {
     super(props);
@@ -156,9 +157,68 @@ export default class DeviceItem extends Component<Props> {
     this.setState({ checked });
   }
 
-  handleRevoke(e, userId) {
+  handleRevoke(e, userId, deviceId) {
     e.preventDefault();
     console.log(userId)
+    console.log(deviceId)
+    // 1 - call api to revoke 
+
+    SolidAuth.trackSession(async (session) => {
+      if (!session) console.log("the user is not loggged in");
+      else {
+        var webId = session.webId;
+        var hostName = new URL(webId);
+
+        const permissions = [
+          {
+            agents: userId,
+            modes: [],
+          },
+        ];
+
+        const ACLFile = await ACLFactory.createNewAcl(
+          webId,
+          `https://${hostName.hostname}/solidiot-app/${deviceId}/data.json`
+        );
+
+        await ACLFile.createACL(permissions);
+
+
+        // 2 - remove sharedItem 
+        var urlIndexSetting = `https://${hostName.hostname}/solidiot-app/indexSettings.json`;
+        const docSetting = SolidAuth.fetch(urlIndexSetting);
+        await docSetting.then(async (res) => {
+          var curr = await res.text();
+          var currSetting = JSON.parse(curr);
+          var item = currSetting.find((e) => e.id === deviceId);
+          if(item){
+            var user = item.sharedPeople.find((e) => e === userId);
+            item.sharedPeople.splice(item.sharedPeople.indexOf(user),1);
+          }
+
+          var urlIndex = `https://${hostName.hostname}/solidiot-app/indexSettings.json`;
+          const result = await SolidAuth.fetch(urlIndex, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(currSetting),
+          });
+  
+          if (result.ok) {
+            console.log("ok");
+          } else if (result.ok === false) {
+            console.log(result.err);
+          }
+        });
+      }
+    })
+
+
+
+
+    // 2 - remove sharedItem 
+    // 3 - noti? 
   }
 
   render() {
@@ -242,7 +302,7 @@ export default class DeviceItem extends Component<Props> {
                                 <Button
                                   variant="danger"
                                   className="float-right"
-                                  onClick={(e) => this.handleRevoke(e, ppl)}
+                                  onClick={(e) => this.handleRevoke(e, ppl, device.id)}
                                 >
                                   Revoke
                                 </Button>
