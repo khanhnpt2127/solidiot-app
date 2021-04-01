@@ -43,7 +43,7 @@ export default class DeviceRequestItem extends Component {
         );
 
         await ACLDescFile.createACL(permissions);
-        console.log("ok create acl")
+        console.log("ok create acl");
         // TODO: check ACL is successful
         // 3 - notify sharedItem
         var url = new URL(deviceRequester);
@@ -56,7 +56,8 @@ export default class DeviceRequestItem extends Component {
             const text = await response.text();
             var sharedItem = JSON.parse(text);
             sharedItem.forEach((item) => {
-              if (item.deviceID === deviceId && item.host ===session.webId) item.isAccepted = true;
+              if (item.deviceID === deviceId && item.host === session.webId)
+                item.isAccepted = true;
             });
             const result = await SolidAuth.fetch(urlSharedItem, {
               method: "PUT",
@@ -71,10 +72,71 @@ export default class DeviceRequestItem extends Component {
               console.log(result.err);
             }
           })
-          .catch((e) => {console.log(e)});
-
+          .catch((e) => {
+            console.log(e);
+          });
       }
-      // 4 - close request 
+      // 4 - update sharedItem List
+      var urlIndexSetting = `https://${hostName.hostname}/solidiot-app/indexSettings.json`;
+      const docSetting = SolidAuth.fetch(urlIndexSetting);
+      await docSetting.then(async (res) => {
+        var curr = await res.text();
+        var currSetting = JSON.parse(curr);
+        var item = currSetting.find((e) => e.id === deviceId);
+        var isExited = item.sharedPeople.find((e) => e === deviceRequester)
+        if(!isExited)
+          item.sharedPeople.push(deviceRequester);
+        var urlIndex = `https://${hostName.hostname}/solidiot-app/indexSettings.json`;
+        const result = await SolidAuth.fetch(urlIndex, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(currSetting),
+        });
+
+        if (result.ok) {
+          console.log("ok");
+        } else if (result.ok === false) {
+          console.log(result.err);
+        }
+      });
+
+      // 5 - close request
+      const urlNoti = `https://${hostName.hostname}/public/solidiotNotification.json`;
+
+      const docNoti = SolidAuth.fetch(urlNoti);
+      docNoti
+        .then(async (response) => {
+          const text = await response.text();
+          const listNotification = JSON.parse(text);
+          
+          var itemHost = listNotification.filter((e) => e.host);
+          console.log(itemHost);
+          itemHost.forEach((item) => {
+            if(deviceId === item.device[0]){
+              listNotification.splice(listNotification.indexOf(item),1)
+            }
+          });
+
+          const result = await SolidAuth.fetch(urlNoti, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(listNotification),
+          });
+  
+          if (result.ok) {
+            console.log("ok");
+          } else if (result.ok === false) {
+            console.log(result.err);
+          }
+
+          
+          window.location.reload();
+        }) 
+        .catch((e) => {console.log(e)});
     });
   }
 
@@ -106,10 +168,7 @@ export default class DeviceRequestItem extends Component {
                     variant="link"
                     eventKey="0"
                   >
-                    <span style={{ marginLeft: "5px" }}>
-                      {" "}
-                      {device.host}{" "}
-                    </span>
+                    <span style={{ marginLeft: "5px" }}> {device.host} </span>
                   </Accordion.Toggle>
                 </Col>
                 <Col sm={4}>
@@ -146,7 +205,7 @@ export default class DeviceRequestItem extends Component {
                         borderRadius: "5px",
                       }}
                     >
-                      {device.message} - device ID: {device.device[0]} 
+                      {device.message} - device ID: {device.device[0]}
                     </p>
                   </Col>
                 </Row>

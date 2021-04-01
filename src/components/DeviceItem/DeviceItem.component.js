@@ -20,9 +20,11 @@ import ReactJson from "react-json-view";
 import Switch from "react-switch";
 import SolidAuth from "solid-auth-client";
 import { session } from "rdf-namespaces/dist/link";
+import DeviceSharedWhom from "./DeviceSharedWhom.component";
 export default class DeviceItem extends Component<Props> {
   constructor(props) {
     super(props);
+    this.props.settings.sharedPeople.map((e) => console.log(e));
     this.state = {
       checked:
         this.props.settings.isSearchable === undefined
@@ -33,8 +35,7 @@ export default class DeviceItem extends Component<Props> {
   }
 
   async writeToPublic(data) {
-    const urlPublic =
-        "https://solidiot.inrupt.net/public/solidiotPublic.json";
+    const urlPublic = "https://solidiot.inrupt.net/public/solidiotPublic.json";
     const result = await SolidAuth.fetch(urlPublic, {
       method: "PUT",
       headers: {
@@ -49,13 +50,13 @@ export default class DeviceItem extends Component<Props> {
       const urlPublic =
         "https://solidiot.inrupt.net/public/solidiotPublic.json";
       const url = new URL(session.webId);
-      console.log(url)
+      console.log(url);
       const doc = SolidAuth.fetch(urlPublic);
       doc
         .then(async (response) => {
           const text = await response.text();
           var currSharedItems = JSON.parse(text);
-            
+
           var deviceOwner = currSharedItems.find(
             (e) => e.owner === session.webId
           );
@@ -75,7 +76,9 @@ export default class DeviceItem extends Component<Props> {
             console.log(newOwner);
           }
         })
-        .catch((e) => {console.log(e)});
+        .catch((e) => {
+          console.log(e);
+        });
     });
   }
 
@@ -93,12 +96,17 @@ export default class DeviceItem extends Component<Props> {
             (e) => e.owner === session.webId
           );
 
-          console.log(deviceOwner.devices)
-          deviceOwner.devices.splice(deviceOwner.devices.find((e) => e.id === this.props.id),1)
+          console.log(deviceOwner.devices);
+          deviceOwner.devices.splice(
+            deviceOwner.devices.find((e) => e.id === this.props.id),
+            1
+          );
           await this.writeToPublic(currSharedItems);
         })
-        .catch((e) => {console.log(e)});
-    })
+        .catch((e) => {
+          console.log(e);
+        });
+    });
   }
 
   async writeToSetting(checked) {
@@ -148,6 +156,11 @@ export default class DeviceItem extends Component<Props> {
     this.setState({ checked });
   }
 
+  handleRevoke(e, userId) {
+    e.preventDefault();
+    console.log(userId)
+  }
+
   render() {
     const device = this.props;
     return (
@@ -187,23 +200,61 @@ export default class DeviceItem extends Component<Props> {
             </Row>
 
             <Accordion.Collapse eventKey="0">
-              <Row>
-                <Col sm={12}>
-                  <h6 style={{ textTransform: "lowercase", fontSize: "12px" }}>
-                    data:
-                  </h6>
-                  <ReactJson
-                    src={device.data}
-                    iconStyle="circle"
-                    collapsed="1"
-                    onAdd="false"
-                    displayDataTypes="false"
-                    onDelete="false"
-                    name={device.name}
-                    theme="hopscotch"
-                  />
-                </Col>
-              </Row>
+              <Container>
+                <Row>
+                  <Col sm={12}>
+                    <h6
+                      style={{ textTransform: "lowercase", fontSize: "12px" }}
+                    >
+                      data:
+                    </h6>
+                    <ReactJson
+                      src={device.data}
+                      iconStyle="circle"
+                      collapsed="1"
+                      onAdd="false"
+                      displayDataTypes="false"
+                      onDelete="false"
+                      name={device.name}
+                      theme="hopscotch"
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col sm={12} style={{ marginTop: "10px" }}>
+                    <h6
+                      style={{ textTransform: "lowercase", fontSize: "12px" }}
+                    >
+                      Share with:
+                    </h6>
+
+                    <ListGroup>
+                      {this.props.settings.sharedPeople.map((ppl) => (
+                        <ListGroup.Item key={ppl} variant="warning">
+                          <Container>
+                            <Row>
+                              <Col sm={8} style={{ margin: "auto" }}>
+                                <a style={{ color: "#856404" }} href={ppl}>
+                                  {ppl}
+                                </a>
+                              </Col>
+                              <Col sm={4}>
+                                <Button
+                                  variant="danger"
+                                  className="float-right"
+                                  onClick={(e) => this.handleRevoke(e, ppl)}
+                                >
+                                  Revoke
+                                </Button>
+                              </Col>
+                            </Row>
+                          </Container>
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  </Col>
+                </Row>
+              </Container>
             </Accordion.Collapse>
           </Accordion>
         </Container>

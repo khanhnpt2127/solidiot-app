@@ -85,7 +85,7 @@ export default class DeviceFindSharedItem extends Component {
             "deviceID" :deviceId,
             "isAccepted" : false 
           }
-          var sharedItem = []
+
           if(!this.checkDuplicateSharedItem(sharedItem, newSharedItem))
             sharedItem.push(newSharedItem)
 
