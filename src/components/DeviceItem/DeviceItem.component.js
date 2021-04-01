@@ -210,6 +210,8 @@ export default class DeviceItem extends Component<Props> {
           } else if (result.ok === false) {
             console.log(result.err);
           }
+          window.location.reload();
+         // 3 - set waiting message
         });
       }
     })

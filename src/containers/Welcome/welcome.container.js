@@ -138,7 +138,7 @@ export class WelcomeComponent extends Component<Props> {
           });
         }
       })
-      .catch(() => {});
+      .catch((e) => {console.log(e)});
   }
 
   async fetchCurrDeviceData(hostname, deviceId) {
