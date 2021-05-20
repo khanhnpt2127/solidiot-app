@@ -251,7 +251,6 @@ export default class AddDeviceFormContainer extends Component {
                 var itemInTD = deviceTd.data;
                
                 const found = currDevices.some((i) => dev.id === i)
-                console.log(found);
 
                 if(!found) {
                   await this.createDeviceTD(
@@ -261,6 +260,11 @@ export default class AddDeviceFormContainer extends Component {
                   );
                   // 2 - fetch data 
                   const resp = await axios.get(`https://localhost:44312/api/Devices/${dev.id}`);
+                  
+                  resp.data.data.value = JSON.parse(resp.data.data.value);
+                  var cpData = resp.data.data;
+                  resp.data.data = [];
+                  resp.data.data.push(cpData);
 
                   await this.createDeviceData(
                     JSON.stringify(resp.data.data),

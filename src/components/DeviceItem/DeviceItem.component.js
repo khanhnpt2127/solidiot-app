@@ -22,6 +22,8 @@ import SolidAuth from "solid-auth-client";
 import { session } from "rdf-namespaces/dist/link";
 import DeviceSharedWhom from "./DeviceSharedWhom.component";
 import { AccessControlList, ACLFactory } from "@inrupt/solid-react-components";
+import axios from "axios";
+import { faDownload } from "@fortawesome/free-solid-svg-icons";
 export default class DeviceItem extends Component<Props> {
   constructor(props) {
     super(props);
@@ -34,7 +36,21 @@ export default class DeviceItem extends Component<Props> {
     };
     this.handleChange = this.handleChange.bind(this);
   }
-
+  createDeviceData = async (deviceData, deviceId, hostname) => {
+    var urlData = `https://${hostname}/solidiot-app/${deviceId}/data.json`;
+    const result = await SolidAuth.fetch(urlData, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: deviceData,
+    });
+    if (result.ok) {
+      console.log("ok");
+    } else if (result.ok === false) {
+      console.log(result.err);
+    }
+  };
   async writeToPublic(data) {
     const urlPublic = "https://solidiot.inrupt.net/public/solidiotPublic.json";
     const result = await SolidAuth.fetch(urlPublic, {
@@ -159,9 +175,9 @@ export default class DeviceItem extends Component<Props> {
 
   handleRevoke(e, userId, deviceId) {
     e.preventDefault();
-    console.log(userId)
-    console.log(deviceId)
-    // 1 - call api to revoke 
+    console.log(userId);
+    console.log(deviceId);
+    // 1 - call api to revoke
 
     SolidAuth.trackSession(async (session) => {
       if (!session) console.log("the user is not loggged in");
@@ -183,17 +199,16 @@ export default class DeviceItem extends Component<Props> {
 
         await ACLFile.createACL(permissions);
 
-
-        // 2 - remove sharedItem 
+        // 2 - remove sharedItem
         var urlIndexSetting = `https://${hostName.hostname}/solidiot-app/indexSettings.json`;
         const docSetting = SolidAuth.fetch(urlIndexSetting);
         await docSetting.then(async (res) => {
           var curr = await res.text();
           var currSetting = JSON.parse(curr);
           var item = currSetting.find((e) => e.id === deviceId);
-          if(item){
+          if (item) {
             var user = item.sharedPeople.find((e) => e === userId);
-            item.sharedPeople.splice(item.sharedPeople.indexOf(user),1);
+            item.sharedPeople.splice(item.sharedPeople.indexOf(user), 1);
           }
 
           var urlIndex = `https://${hostName.hostname}/solidiot-app/indexSettings.json`;
@@ -204,23 +219,47 @@ export default class DeviceItem extends Component<Props> {
             },
             body: JSON.stringify(currSetting),
           });
-  
+
           if (result.ok) {
             console.log("ok");
           } else if (result.ok === false) {
             console.log(result.err);
           }
           window.location.reload();
-         // 3 - set waiting message
+          // 3 - set waiting message
         });
       }
-    })
+    });
 
+    // 2 - remove sharedItem
+    // 3 - noti?
+  }
 
+  async handleFetchNewData(e) {
+    e.preventDefault();
 
+    console.log("fetch data....");
 
-    // 2 - remove sharedItem 
-    // 3 - noti? 
+    SolidAuth.trackSession(async (session) => {
+      if (!session) console.log("The user is not logged in");
+      else {
+        const url = new URL(session.webId);
+        const resp = await axios.get(
+          `https://localhost:44312/api/Devices/${this.props.id}`
+        );
+        var dev = this.props;
+        console.log(dev.data);
+        const found = dev.data.some((i) => i.id === resp.data.data.id);
+        if (!found) {
+          this.props.data.push(resp.data.data);
+          await this.createDeviceData(
+            JSON.stringify(this.props.data),
+            dev.id,
+            url.hostname
+          );
+        }
+      }
+    });
   }
 
   render() {
@@ -235,13 +274,20 @@ export default class DeviceItem extends Component<Props> {
                   key="top"
                   placement="top"
                   overlay={
-                    <Tooltip id={`tooltip-top}`}> click to deactive </Tooltip>
+                    <Tooltip id={`tooltip-top}`}>
+                      {" "}
+                      click to fetch new data{" "}
+                    </Tooltip>
                   }
                 >
                   <Button
                     variant="success"
                     style={{ minHeight: "26px" }}
-                  ></Button>
+                    onClick={(e) => this.handleFetchNewData(e)}
+                  >
+                    {" "}
+                    <FontAwesomeIcon icon={faDownload} className="fa-sm" />{" "}
+                  </Button>
                 </OverlayTrigger>
                 <Accordion.Toggle
                   style={{ color: "#388E3C" }}
@@ -304,7 +350,9 @@ export default class DeviceItem extends Component<Props> {
                                 <Button
                                   variant="danger"
                                   className="float-right"
-                                  onClick={(e) => this.handleRevoke(e, ppl, device.id)}
+                                  onClick={(e) =>
+                                    this.handleRevoke(e, ppl, device.id)
+                                  }
                                 >
                                   Revoke
                                 </Button>

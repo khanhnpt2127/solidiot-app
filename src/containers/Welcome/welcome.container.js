@@ -195,7 +195,6 @@ export class WelcomeComponent extends Component<Props> {
                     url.hostname,
                     element
                   );
-                  console.log(deviceData);
                   
                   var currSetting;
                   this.state.currSettings.forEach((e) => {
