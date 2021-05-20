@@ -7,6 +7,8 @@ import {
   OverlayTrigger,
   Tooltip,
   Accordion,
+  Form,
+  Alert
 } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -15,21 +17,25 @@ import SolidAuth from "solid-auth-client";
 export default class DeviceFindSharedItem extends Component {
   checkDuplicateRequest(currDevice, newNotification) {
     var findNewInCurr = currDevice.find((x) => x.host === newNotification.host);
-    if(findNewInCurr) {
-      var curr = findNewInCurr.device.find((y) => y === newNotification.device[0]);
-      if(curr) { 
-        return true; }
+    if (findNewInCurr) {
+      var curr = findNewInCurr.device.find(
+        (y) => y === newNotification.device[0]
+      );
+      if (curr) {
+        return true;
+      }
     }
     return false;
   }
 
   checkDuplicateSharedItem(currSharedItem, newSharedItem) {
-
-    var curr =  currSharedItem.find((x) => x.host === newSharedItem.host && x.deviceID === newSharedItem.deviceID)
-    if(curr) return true;
-    return false
+    var curr = currSharedItem.find(
+      (x) =>
+        x.host === newSharedItem.host && x.deviceID === newSharedItem.deviceID
+    );
+    if (curr) return true;
+    return false;
   }
-
 
   async handleSendRequest(event, deviceId, deviceOwner) {
     event.preventDefault();
@@ -38,7 +44,6 @@ export default class DeviceFindSharedItem extends Component {
     SolidAuth.trackSession((session) => {
       if (!session) console.log("The user is not logged in");
       else {
-
         var url = new URL(deviceOwner);
         var urlNotification = `https://${url.hostname}/public/solidiotNotification.json`;
         const doc = SolidAuth.fetch(urlNotification);
@@ -68,42 +73,44 @@ export default class DeviceFindSharedItem extends Component {
               }
             }
           })
-          .catch((e) => { console.log(e)});
+          .catch((e) => {
+            console.log(e);
+          });
 
-
-        var urlUr = new URL(session.webId)
+        var urlUr = new URL(session.webId);
         var urlSharedItem = `https://${urlUr.hostname}/public/sharedItems.json`;
         const docUr = SolidAuth.fetch(urlSharedItem);
 
         docUr
-        .then(async (response) => {
-          const text = await response.text();
-          var sharedItem = JSON.parse(text);
+          .then(async (response) => {
+            const text = await response.text();
+            var sharedItem = JSON.parse(text);
 
-          var newSharedItem = {
-            "host" : deviceOwner,
-            "deviceID" :deviceId,
-            "isAccepted" : false 
-          }
+            var newSharedItem = {
+              host: deviceOwner,
+              deviceID: deviceId,
+              isAccepted: false,
+            };
 
-          if(!this.checkDuplicateSharedItem(sharedItem, newSharedItem))
-            sharedItem.push(newSharedItem)
+            if (!this.checkDuplicateSharedItem(sharedItem, newSharedItem))
+              sharedItem.push(newSharedItem);
 
-          const result = await SolidAuth.fetch(urlSharedItem, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/ld+json",
-            },
-            body: JSON.stringify(sharedItem),
+            const result = await SolidAuth.fetch(urlSharedItem, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/ld+json",
+              },
+              body: JSON.stringify(sharedItem),
+            });
+            if (result.ok) {
+              console.log("ok");
+            } else if (result.ok === false) {
+              console.log(result.err);
+            }
+          })
+          .catch((e) => {
+            console.log(e);
           });
-          if (result.ok) {
-            console.log("ok");
-          } else if (result.ok === false) {
-            console.log(result.err);
-          }
-        })
-        .catch((e) => {console.log(e)});
-
       }
     });
   }
@@ -112,9 +119,7 @@ export default class DeviceFindSharedItem extends Component {
     const device = this.props;
     return (
       <>
-        <ListGroup.Item
-          variant="success"
-        >
+        <ListGroup.Item variant="success">
           <Container>
             <Accordion defaultActiveKey="1">
               <Row>
@@ -134,7 +139,7 @@ export default class DeviceFindSharedItem extends Component {
 
                   <Accordion.Toggle
                     style={{
-                      color:  "#388E3C",
+                      color: "#388E3C",
                     }}
                     as={Button}
                     variant="link"
@@ -147,42 +152,90 @@ export default class DeviceFindSharedItem extends Component {
                   </Accordion.Toggle>
                 </Col>
                 <Col sm={4}>
-                    <Button
-                      onClick={(e) => {
-                        this.handleSendRequest(e, device.id, device.owner);
-                      }}
-                      variant="success"
-                      className="float-right"
-                    >
-                      Send Request
-                    </Button>
+                  <Button
+                    onClick={(e) => {
+                      this.handleSendRequest(e, device.id, device.owner);
+                    }}
+                    variant="success"
+                    className="float-right"
+                  >
+                    Send Request
+                  </Button>
                 </Col>
               </Row>
 
               <Accordion.Collapse eventKey="0">
-                <Row>
-                  {device.desc && (
+                <>
+                  <Row>
+                    {device.desc && (
+                      <Col sm={12}>
+                        <h6
+                          style={{
+                            textTransform: "lowercase",
+                            fontSize: "12px",
+                          }}
+                        >
+                          description:
+                        </h6>
+                        <p
+                          style={{
+                            backgroundColor: "rgb(50, 41, 49)",
+                            color: "white",
+                            padding: "10px",
+                            fontSize: "14px",
+                            borderRadius: "5px",
+                          }}
+                        >
+                          {" "}
+                          {device.desc}{" "}
+                        </p>
+                      </Col>
+                    )}
+                  </Row>
+                  <Row>
                     <Col sm={12}>
                       <h6
-                        style={{ textTransform: "lowercase", fontSize: "12px" }}
-                      >
-                        description:
-                      </h6>
-                      <p
                         style={{
-                          backgroundColor: "rgb(50, 41, 49)",
-                          color: "white",
-                          padding: "10px",
-                          fontSize: "14px",
-                          borderRadius: "5px",
+                          textTransform: "lowercase",
+                          fontSize: "12px",
                         }}
                       >
-                        {" "}
-                        {device.desc}{" "}
-                      </p>
+                        Terms and Conditions:
+                      </h6>
                     </Col>
-                  )}
-                </Row>
+                    <Col sm={5}>
+                      <Form.Group controlId="formGridState">
+                        <Form.Control as="select" defaultValue="Choose...">
+                          <option>choose a purpose of usage</option>
+                          <option>...</option>
+                        </Form.Control>
+                      </Form.Group>
+                    </Col>
+                    <Col sm={5}>
+                      <Form.Group controlId="formGridState">
+                        <Form.Control as="select" defaultValue="Choose...">
+                          <option>how long the data is shared?</option>
+                          <option>7 days</option>
+                          <option>30 days</option>
+                          <option> 90 days</option>
+                          <option> 180 days</option>
+                          <option>10 seconds</option>
+                        </Form.Control>
+                      </Form.Group>
+                    </Col>
+
+                    <Col sm={2}>
+                      <Button
+                        onClick={(e) => {
+                        }}
+                        variant="success"
+                        className="float-right"
+                      >
+                        Send Request
+                      </Button>
+                    </Col>
+                  </Row>
+                </>
               </Accordion.Collapse>
             </Accordion>
           </Container>

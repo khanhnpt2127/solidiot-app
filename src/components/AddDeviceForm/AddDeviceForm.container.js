@@ -139,8 +139,8 @@ export default class AddDeviceFormContainer extends Component {
         this.setState((prevState) => ({
           devices: [...prevState.devices, deviceData],
         }));
-        //TODO: create file
-        SolidAuth.trackSession((session) => {
+
+        SolidAuth.trackSession(async(session) => {
           if (!session) console.log("The user is not logged in");
           else {
             const url = new URL(session.webId);
@@ -247,14 +247,11 @@ export default class AddDeviceFormContainer extends Component {
 
               for(let dev of devices) {
 
-
-                var itemInTD = objTemp;
-                itemInTD.id = dev.id;
-                itemInTD.title = dev.name;
-
-
+                const deviceTd = await axios.get(`https://localhost:44312/api/Devices/${dev.id}/thingdesc`)
+                var itemInTD = deviceTd.data;
+               
                 const found = currDevices.some((i) => dev.id === i)
-                
+                console.log(found);
 
                 if(!found) {
                   await this.createDeviceTD(

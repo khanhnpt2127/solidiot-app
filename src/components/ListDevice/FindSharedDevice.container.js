@@ -84,7 +84,7 @@ export default class FindSharedDeviceContaner extends Component {
     return (
       <>
         <Container>
-          <h3 style={{ marginTop: "10px" }}>find new shared device: </h3>
+          <h3 style={{ marginTop: "10px" }}>find resource(s) from community: </h3>
           <Form
             onSubmit={this.handleSubmit}
             inline

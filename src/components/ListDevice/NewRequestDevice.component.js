@@ -51,7 +51,7 @@ export default class NewRequestDeviceComponent extends Component {
     return (
       <>
         <Container>
-          <h3 style={{ marginTop: "10px" }}>new request for shared device: </h3>
+          <h3 style={{ marginTop: "10px" }}>new request from SoLiD-IoT Community: </h3>
 
           <ListGroup style={{ marginTop: "10px" }}>
             {this.state.devices.map((device) => (
