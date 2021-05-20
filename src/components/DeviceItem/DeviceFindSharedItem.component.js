@@ -119,27 +119,14 @@ export default class DeviceFindSharedItem extends Component {
     const device = this.props;
     return (
       <>
-        <ListGroup.Item variant="success">
+        <ListGroup.Item variant="secondary">
           <Container>
             <Accordion defaultActiveKey="1">
               <Row>
-                <Col sm={8} style={{ margin: "auto" }}>
-                  <OverlayTrigger
-                    key="top"
-                    placement="top"
-                    overlay={
-                      <Tooltip id={`tooltip-top}`}> click to deactive </Tooltip>
-                    }
-                  >
-                    <Button
-                      variant="success"
-                      style={{ minHeight: "26px" }}
-                    ></Button>
-                  </OverlayTrigger>
-
+                <Col sm={8} style={{ margin: "auto", marginLeft: "-17px"}}>
                   <Accordion.Toggle
                     style={{
-                      color: "#388E3C",
+                      color: "#383d41",
                     }}
                     as={Button}
                     variant="link"
@@ -152,15 +139,6 @@ export default class DeviceFindSharedItem extends Component {
                   </Accordion.Toggle>
                 </Col>
                 <Col sm={4}>
-                  <Button
-                    onClick={(e) => {
-                      this.handleSendRequest(e, device.id, device.owner);
-                    }}
-                    variant="success"
-                    className="float-right"
-                  >
-                    Send Request
-                  </Button>
                 </Col>
               </Row>
 
@@ -198,6 +176,7 @@ export default class DeviceFindSharedItem extends Component {
                         style={{
                           textTransform: "lowercase",
                           fontSize: "12px",
+                          color: "#383d41"
                         }}
                       >
                         Terms and Conditions:
@@ -227,8 +206,9 @@ export default class DeviceFindSharedItem extends Component {
                     <Col sm={2}>
                       <Button
                         onClick={(e) => {
-                        }}
-                        variant="success"
+                      this.handleSendRequest(e, device.id, device.owner);
+                    }}
+                        varinta="secondary"
                         className="float-right"
                       >
                         Send Request
