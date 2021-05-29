@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, useState  } from "react";
 import {
   ListGroup,
   Container,
@@ -8,13 +8,23 @@ import {
   Tooltip,
   Accordion,
   Form,
-  Alert
+  Alert,
 } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SolidAuth from "solid-auth-client";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.min.css";
 
 export default class DeviceFindSharedItem extends Component {
+
+  constructor(){
+    super();
+     this.state = {
+      TypeOfRequestDate: Date.now() 
+    };
+  }
+
   checkDuplicateRequest(currDevice, newNotification) {
     var findNewInCurr = currDevice.find((x) => x.host === newNotification.host);
     if (findNewInCurr) {
@@ -115,6 +125,15 @@ export default class DeviceFindSharedItem extends Component {
     });
   }
 
+  async handleTypeOfRequestChange(e) {
+    e.preventDefault();
+    console.log(e.target.name);
+    console.log(e.target.value);
+  }
+  handleDateChange(date) {
+    console.log(date)
+    this.setState({TypeOfRequestDate: date})
+  }
   render() {
     const device = this.props;
     return (
@@ -123,7 +142,7 @@ export default class DeviceFindSharedItem extends Component {
           <Container>
             <Accordion defaultActiveKey="1">
               <Row>
-                <Col sm={8} style={{ margin: "auto", marginLeft: "-17px"}}>
+                <Col sm={8} style={{ margin: "auto", marginLeft: "-17px" }}>
                   <Accordion.Toggle
                     style={{
                       color: "#383d41",
@@ -138,8 +157,7 @@ export default class DeviceFindSharedItem extends Component {
                     </span>
                   </Accordion.Toggle>
                 </Col>
-                <Col sm={4}>
-                </Col>
+                <Col sm={4}></Col>
               </Row>
 
               <Accordion.Collapse eventKey="0">
@@ -176,7 +194,48 @@ export default class DeviceFindSharedItem extends Component {
                         style={{
                           textTransform: "lowercase",
                           fontSize: "12px",
-                          color: "#383d41"
+                          color: "#383d41",
+                        }}
+                      >
+                        Requested type:
+                      </h6>
+                    </Col>
+                    <Col sm={5}>
+                      <Form.Group controlId="formGridState">
+                        <Form.Control
+                          name="frmTypeOfRequest"
+                          as="select"
+                          defaultValue="Choose..."
+                          onChange={(e) => this.handleTypeOfRequestChange(e)}
+                        >
+                          <option>choose type of request </option>
+                          <option value="0">one time</option>
+                          <option value="1">from - to </option>
+                        </Form.Control>
+                      </Form.Group>
+                    </Col>
+
+                    <Col sm={5}>
+                      <DatePicker
+                        onChange={(date) => this.handleDateChange(date)}
+                        selected={this.state.TypeOfRequestDate}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="MMMM d, yyyy h:mm aa"
+                        style={{display: "none" }}
+                        className="form-control"
+                      />
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col sm={12}>
+                      <h6
+                        style={{
+                          textTransform: "lowercase",
+                          fontSize: "12px",
+                          color: "#383d41",
                         }}
                       >
                         Terms and Conditions:
@@ -186,7 +245,9 @@ export default class DeviceFindSharedItem extends Component {
                       <Form.Group controlId="formGridState">
                         <Form.Control as="select" defaultValue="Choose...">
                           <option>choose a purpose of usage</option>
-                          <option>...</option>
+                          <option>research</option>
+                          <option>business</option>
+                          <option>commercial</option>
                         </Form.Control>
                       </Form.Group>
                     </Col>
@@ -206,9 +267,9 @@ export default class DeviceFindSharedItem extends Component {
                     <Col sm={2}>
                       <Button
                         onClick={(e) => {
-                      this.handleSendRequest(e, device.id, device.owner);
-                    }}
-                        varinta="secondary"
+                          this.handleSendRequest(e, device.id, device.owner);
+                        }}
+                        variant="dark"
                         className="float-right"
                       >
                         Send Request
