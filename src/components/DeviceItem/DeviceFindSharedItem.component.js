@@ -1,4 +1,4 @@
-import React, { Component, useState  } from "react";
+import React, { Component, useState } from "react";
 import {
   ListGroup,
   Container,
@@ -14,14 +14,15 @@ import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SolidAuth from "solid-auth-client";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.min.css";
-
+import "react-datepicker/dist/react-datepicker.css";
+import Example from "./DatePicker"
 export default class DeviceFindSharedItem extends Component {
-
-  constructor(){
+  constructor() {
     super();
-     this.state = {
-      TypeOfRequestDate: Date.now() 
+    this.state = {
+      TypeOfRequestDate: Date.now(),
+      isOneTimeVisible: false,
+      isFromToVisible: false 
     };
   }
 
@@ -127,12 +128,17 @@ export default class DeviceFindSharedItem extends Component {
 
   async handleTypeOfRequestChange(e) {
     e.preventDefault();
-    console.log(e.target.name);
-    console.log(e.target.value);
+    if(e.target.value == 0) { 
+      this.setState({ isOneTimeVisible: true, isFromToVisible: false });
+    }
+    if (e.target.value == 1) 
+      this.setState({ isOneTimeVisible: false , isFromToVisible: true });
+
+      console.log(e.target.value)
   }
   handleDateChange(date) {
-    console.log(date)
-    this.setState({TypeOfRequestDate: date})
+    console.log(date);
+    this.setState({ TypeOfRequestDate: date });
   }
   render() {
     const device = this.props;
@@ -214,8 +220,8 @@ export default class DeviceFindSharedItem extends Component {
                         </Form.Control>
                       </Form.Group>
                     </Col>
-
-                    <Col sm={5}>
+                    { this.state.isOneTimeVisible ? 
+                    <Col sm={5} >
                       <DatePicker
                         onChange={(date) => this.handleDateChange(date)}
                         selected={this.state.TypeOfRequestDate}
@@ -224,10 +230,17 @@ export default class DeviceFindSharedItem extends Component {
                         timeIntervals={15}
                         timeCaption="time"
                         dateFormat="MMMM d, yyyy h:mm aa"
-                        style={{display: "none" }}
+                        style={{ display: "none" }}
                         className="form-control"
                       />
-                    </Col>
+                    </Col> : <></>
+                    }
+
+                    { this.state.isFromToVisible ? 
+                    <Col sm={5}>
+                      <Example />
+                    </Col> : <> </>
+                    }
                   </Row>
                   <Row>
                     <Col sm={12}>
