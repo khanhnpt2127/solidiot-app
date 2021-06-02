@@ -83,9 +83,8 @@ export default class DeviceRequestItem extends Component {
         var curr = await res.text();
         var currSetting = JSON.parse(curr);
         var item = currSetting.find((e) => e.id === deviceId);
-        var isExited = item.sharedPeople.find((e) => e === deviceRequester)
-        if(!isExited)
-          item.sharedPeople.push(deviceRequester);
+        var isExited = item.sharedPeople.find((e) => e === deviceRequester);
+        if (!isExited) item.sharedPeople.push(deviceRequester);
         var urlIndex = `https://${hostName.hostname}/solidiot-app/indexSettings.json`;
         const result = await SolidAuth.fetch(urlIndex, {
           method: "PUT",
@@ -110,12 +109,12 @@ export default class DeviceRequestItem extends Component {
         .then(async (response) => {
           const text = await response.text();
           const listNotification = JSON.parse(text);
-          
+
           var itemHost = listNotification.filter((e) => e.host);
           console.log(itemHost);
           itemHost.forEach((item) => {
-            if(deviceId === item.device[0]){
-              listNotification.splice(listNotification.indexOf(item),1)
+            if (deviceId === item.device[0]) {
+              listNotification.splice(listNotification.indexOf(item), 1);
             }
           });
 
@@ -126,44 +125,44 @@ export default class DeviceRequestItem extends Component {
             },
             body: JSON.stringify(listNotification),
           });
-  
+
           if (result.ok) {
             console.log("ok");
           } else if (result.ok === false) {
             console.log(result.err);
           }
 
-          
           window.location.reload();
-        }) 
-        .catch((e) => {console.log(e)});
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     });
   }
+  secondsToDhms(seconds) {
+    seconds = Number(seconds);
+    var d = Math.floor(seconds / (3600 * 24));
+    var h = Math.floor((seconds % (3600 * 24)) / 3600);
+    var m = Math.floor((seconds % 3600) / 60);
+    var s = Math.floor(seconds % 60);
 
+    var dDisplay = d > 0 ? d + (d == 1 ? " day " : " days ") : "";
+    var hDisplay = h > 0 ? h + (h == 1 ? " hour " : " hours ") : "";
+    var mDisplay = m > 0 ? m + (m == 1 ? " minute " : " minutes ") : "";
+    var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+    return dDisplay + hDisplay + mDisplay + sDisplay;
+  }
   render() {
     const device = this.props;
     return (
       <>
-        <ListGroup.Item variant="success">
+        <ListGroup.Item variant="info">
           <Container>
             <Accordion defaultActiveKey="1">
               <Row>
-                <Col sm={8} style={{ margin: "auto" }}>
-                  <OverlayTrigger
-                    key="top"
-                    placement="top"
-                    overlay={
-                      <Tooltip id={`tooltip-top}`}> click to deactive </Tooltip>
-                    }
-                  >
-                    <Button
-                      variant="success"
-                      style={{ minHeight: "26px" }}
-                    ></Button>
-                  </OverlayTrigger>
-
+                <Col sm={8} style={{ margin: "auto", marginLeft: "-17px" }}>
                   <Accordion.Toggle
-                    style={{ color: "#388E3C" }}
+                    style={{ color: "#0c5460" }}
                     as={Button}
                     variant="link"
                     eventKey="0"
@@ -180,7 +179,7 @@ export default class DeviceRequestItem extends Component {
                         device.host
                       );
                     }}
-                    variant="success"
+                    variant="info"
                     className="float-right"
                   >
                     Accept Request
@@ -205,7 +204,15 @@ export default class DeviceRequestItem extends Component {
                         borderRadius: "5px",
                       }}
                     >
-                      {device.message} - device ID: {device.device[0]}
+                      {device.message} - device ID: {device.device[0]}. 
+                      The data consumer would like to use it{" "}
+                       {device.request.type === "fromto"
+                        ? "from " +
+                          new Date(device.request.startTime) +
+                          "to " +
+                          new Date(device.request.endTime)
+                        : "at " + new Date(device.request.startTime)}
+                      . He (She) uses it for {device.purpose} purpose in {this.secondsToDhms(device.request.duration)}. 
                     </p>
                   </Col>
                 </Row>
