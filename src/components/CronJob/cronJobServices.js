@@ -15,6 +15,33 @@ function RegisterJob(deviceId, deviceUrl) {
   });
 }
 
+async function WriteToSolid(urlHostname, deviceId, requesterId, deviceData) {    
+    console.log(requesterId)
+    var urlData = `https://${urlHostname}/solidiot-app/${deviceId}/${requesterId}/data.json`;
+
+    const result = await SolidAuth.fetch(urlData, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: deviceData,
+    });
+    if (result.ok) {
+      console.log("ok");
+    } else if (result.ok === false) {
+      console.log(result.err);
+    }
+}
+
+function extractDeviceId(deviceId) {
+    if(deviceId.includes("urn:dev:ops:")) {
+        var res = deviceId.replace("urn:dev:ops:","").replace("-HueDaylight-1234","");
+        
+        return res;
+    }
+    return deviceId;
+}
+
 function ExtractNewRequest(request) {
     //TODO: check start time is past or future 
     var requestTime = new Date(request.request.startTime);
@@ -24,6 +51,51 @@ function ExtractNewRequest(request) {
             console.log("nearly past")
         } else {
             //TODO: by current data check in data.json
+            
+            
+
+    SolidAuth.trackSession(async(session) => {{
+        console.log(request)
+      if (!session) console.log("no session");
+      else {
+        const url = new URL(session.webId);
+        var deviceId = extractDeviceId(request.device[0]);
+        var urlData = `https://${url.hostname}/solidiot-app/${deviceId}/data.json`;
+        const doc = SolidAuth.fetch(urlData);
+        let dData = await doc
+        .then(async (response) => {
+            const text = await response.text();
+            if (response.ok) {
+                let deviceData = JSON.parse(text);
+                console.log(deviceData) 
+                if(request.request.endTime !== null) {
+                    //INFO: range checker 
+                    var selectedData = [];
+                    var startTime = new Date(request.request.startTime);
+                    var endTime = new Date(request.request.endTime);
+                    deviceData.forEach((dataItem) => {
+                        var createdDate = new Date(dataItem.created);
+                        if(createdDate > startTime && createdDate < endTime) selectedData.push(dataItem);
+                    })
+
+                    //TODO: create a subfile shared file
+                    var requestUrl = new URL(request.host)
+                    WriteToSolid(url.hostname, deviceId, requestUrl.hostname, JSON.stringify(selectedData));
+
+
+
+                } else {
+                    //TODO: single point checker 
+                }
+
+            }
+        })
+        .catch(() => {}); 
+        }
+    }})
+
+
+
             console.log("far past")
         }
     } else {
@@ -35,7 +107,7 @@ function ExtractNewRequest(request) {
 
 
 function NewRequestObservationServiceWorker() {
-  var task = cron.schedule("*/10 * * * * *", () => {
+  var task = cron.schedule("*/60 * * * * *", () => {
 
     SolidAuth.trackSession((session) => {
       if (!session) console.log("no session");
