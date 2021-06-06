@@ -172,7 +172,17 @@ export default class DeviceItem extends Component<Props> {
     }
     this.setState({ checked });
   }
+  extractDeviceId(deviceId) {
+    if(deviceId.includes("urn:dev:ops:")) {
+      var replacedHeader = deviceId.replace("urn:dev:ops:","");
+      var fullRes =  replacedHeader.replace("-HueDaylight-1234","");
+      var fullRes =  replacedHeader.replace("-HueLight-1","");
 
+      console.log(fullRes)
+      return fullRes;
+    }
+    return deviceId;
+  }
   handleRevoke(e, userId, deviceId) {
     e.preventDefault();
     console.log(userId);
@@ -184,7 +194,8 @@ export default class DeviceItem extends Component<Props> {
       else {
         var webId = session.webId;
         var hostName = new URL(webId);
-
+        var requesterUrl = new URL(userId);
+        let deviceIdExtracted = this.extractDeviceId(deviceId)
         const permissions = [
           {
             agents: userId,
@@ -194,7 +205,7 @@ export default class DeviceItem extends Component<Props> {
 
         const ACLFile = await ACLFactory.createNewAcl(
           webId,
-          `https://${hostName.hostname}/solidiot-app/${deviceId}/data.json`
+          `https://${hostName.hostname}/solidiot-app/${deviceIdExtracted}/${requesterUrl.hostname}/data.json`
         );
 
         await ACLFile.createACL(permissions);

@@ -12,7 +12,7 @@ import Button from "react-bootstrap/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import SolidAuth from "solid-auth-client";
 import { AccessControlList, ACLFactory } from "@inrupt/solid-react-components";
-
+import { SetAutoRevoke } from '../CronJob/cronJobServices'
 export default class DeviceRequestItem extends Component {
 
   extractDeviceId(deviceId) {
@@ -116,8 +116,10 @@ export default class DeviceRequestItem extends Component {
           console.log(result.err);
         }
       });
-
-      // 5 - close request
+      //  5 - set auto revoke
+      SetAutoRevoke(deviceIdExtracted,this.props.request.duration, deviceRequester)
+      
+      // 6 - close request
       const urlNoti = `https://${hostName.hostname}/public/solidiotNotification.json`;
 
       const docNoti = SolidAuth.fetch(urlNoti);
