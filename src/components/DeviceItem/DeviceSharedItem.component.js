@@ -109,20 +109,7 @@ export default class DeviceSharedItem extends Component {
           <Container>
             <Accordion defaultActiveKey="1">
               <Row>
-                <Col sm={8} style={{ margin: "auto" }}>
-                  <OverlayTrigger
-                    key="top"
-                    placement="top"
-                    overlay={
-                      <Tooltip id={`tooltip-top}`}> click to deactive </Tooltip>
-                    }
-                  >
-                    <Button
-                      variant={device.isShared == true ? "success" : "warning"}
-                      style={{ minHeight: "26px" }}
-                    ></Button>
-                  </OverlayTrigger>
-
+                <Col sm={12} style={{ margin: "auto", marginLeft: "-17px" }}>
                   <Accordion.Toggle
                     style={{
                       color: device.isShared == true ? "#388E3C" : "#856404",
@@ -137,24 +124,8 @@ export default class DeviceSharedItem extends Component {
                     </span>
                   </Accordion.Toggle>
                 </Col>
-                <Col sm={4}>
-                  {device.isShared == false ? (
-                    <Button
-                      onClick={(e) => {
-                        this.handleSendRequest(e, device.id, device.owner);
-                      }}
-                      variant={device.isShared == true ? "success" : "warning"}
-                      className="float-right"
-                      disabled
-                    >
-                      Send Request
-                    </Button>
-                  ) : (
-                    <Button variant="success" disabled className="float-right">
-                      Accepted Request
-                    </Button>
-                  )}
-                </Col>
+
+
               </Row>
 
               <Accordion.Collapse eventKey="0">

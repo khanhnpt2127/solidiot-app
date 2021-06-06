@@ -225,7 +225,7 @@ export default class DeviceFindSharedItem extends Component {
           <Container>
             <Accordion defaultActiveKey="1">
               <Row>
-                <Col sm={8} style={{ margin: "auto", marginLeft: "-17px" }}>
+                <Col sm={12} style={{ margin: "auto", marginLeft: "-17px" }}>
                   <Accordion.Toggle
                     style={{
                       color: "#383d41",
@@ -240,7 +240,6 @@ export default class DeviceFindSharedItem extends Component {
                     </span>
                   </Accordion.Toggle>
                 </Col>
-                <Col sm={4}></Col>
               </Row>
 
               <Accordion.Collapse eventKey="0">

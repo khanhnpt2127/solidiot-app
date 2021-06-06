@@ -35,9 +35,12 @@ async function WriteToSolid(urlHostname, deviceId, requesterId, deviceData) {
 
 function extractDeviceId(deviceId) {
     if(deviceId.includes("urn:dev:ops:")) {
-        var res = deviceId.replace("urn:dev:ops:","").replace("-HueDaylight-1234","");
-        
-        return res;
+      var replacedHeader = deviceId.replace("urn:dev:ops:","");
+      var fullRes =  replacedHeader.replace("-HueDaylight-1234","");
+      var fullRes =  replacedHeader.replace("-HueLight-1","");
+
+      console.log(fullRes)
+      return fullRes;
     }
     return deviceId;
 }
@@ -54,45 +57,46 @@ function ExtractNewRequest(request) {
             
             
 
-    SolidAuth.trackSession(async(session) => {{
-        console.log(request)
-      if (!session) console.log("no session");
-      else {
-        const url = new URL(session.webId);
-        var deviceId = extractDeviceId(request.device[0]);
-        var urlData = `https://${url.hostname}/solidiot-app/${deviceId}/data.json`;
-        const doc = SolidAuth.fetch(urlData);
-        let dData = await doc
-        .then(async (response) => {
-            const text = await response.text();
-            if (response.ok) {
-                let deviceData = JSON.parse(text);
-                console.log(deviceData) 
-                if(request.request.endTime !== null) {
-                    //INFO: range checker 
-                    var selectedData = [];
-                    var startTime = new Date(request.request.startTime);
-                    var endTime = new Date(request.request.endTime);
-                    deviceData.forEach((dataItem) => {
-                        var createdDate = new Date(dataItem.created);
-                        if(createdDate > startTime && createdDate < endTime) selectedData.push(dataItem);
-                    })
+        SolidAuth.trackSession(async(session) => {{ console.log(request)
+          if (!session) console.log("no session");
+          else {
+            console.log("ok")
+            const url = new URL(session.webId);
+            var deviceId = extractDeviceId(request.device[0]);
+            var urlData = `https://${url.hostname}/solidiot-app/${deviceId}/data.json`;
+            const doc = SolidAuth.fetch(urlData);
+            let dData = await doc
+            .then(async (response) => {
+                const text = await response.text();
+                if (response.ok) {
+                    let deviceData = JSON.parse(text);
+                    if(request.request.endTime !== null) {
+                        //INFO: range checker 
+                        var selectedData = [];
+                        var startTime = new Date(request.request.startTime);
+                        var endTime = new Date(request.request.endTime);
+                        deviceData.forEach((dataItem) => {
+                            var createdDate = new Date(dataItem.created);
+                            if(createdDate > startTime && createdDate < endTime) selectedData.push(dataItem);
+                        })
 
-                    //TODO: create a subfile shared file
-                    var requestUrl = new URL(request.host)
-                    WriteToSolid(url.hostname, deviceId, requestUrl.hostname, JSON.stringify(selectedData));
+                        //INFO: create a subfile shared file
+                        var requestUrl = new URL(request.host)
+                        console.log(`startDate ${startTime} ; endTime: ${endTime}`)
+                        WriteToSolid(url.hostname, deviceId, requestUrl.hostname, JSON.stringify(selectedData));
+                        
+                        //TODO: notify the requester to consume data
 
 
+                    } else {
+                        //TODO: single point checker 
+                    }
 
-                } else {
-                    //TODO: single point checker 
                 }
-
+            })
+            .catch(() => {}); 
             }
-        })
-        .catch(() => {}); 
-        }
-    }})
+        }})
 
 
 

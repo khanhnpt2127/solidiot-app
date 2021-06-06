@@ -83,6 +83,17 @@ export class WelcomeComponent extends Component<Props> {
     await ACLFile.createACL(permissions);
   }
 
+  extractDeviceId(deviceId) {
+    if(deviceId.includes("urn:dev:ops:")) {
+      var replacedHeader = deviceId.replace("urn:dev:ops:","");
+      var fullRes =  replacedHeader.replace("-HueDaylight-1234","");
+      var fullRes =  replacedHeader.replace("-HueLight-1","");
+
+      console.log(fullRes)
+      return fullRes;
+    }
+    return deviceId;
+  }
   fetchSharedData() {
     const { webId } = this.props;
     const url = new URL(webId);
@@ -99,7 +110,8 @@ export class WelcomeComponent extends Component<Props> {
             let hostname = element.host;
             let deviceId = element.deviceID;
             var urlHostname = new URL(hostname);
-            var urlDesc = `https://${urlHostname.hostname}/solidiot-app/${deviceId}/desc.jsonld`;
+            let deviceIdExtracted = this.extractDeviceId(deviceId)
+            var urlDesc = `https://${urlHostname.hostname}/solidiot-app/${deviceIdExtracted}/desc.jsonld`;
 
             const doc = SolidAuth.fetch(urlDesc);
 
@@ -108,9 +120,10 @@ export class WelcomeComponent extends Component<Props> {
                 const text = await response.text();
                 if (response.ok) {
                   var currDevice = JSON.parse(text);
-
-                  var urlData = `https://${urlHostname.hostname}/solidiot-app/${deviceId}/data.json`;
                   
+                  var urlData = `https://${urlHostname.hostname}/solidiot-app/${deviceIdExtracted}/${url.hostname}/data.json`;
+                  
+                  console.log(urlData);
                   const docData = SolidAuth.fetch(urlData);
                   docData.then(async (res) => {
 

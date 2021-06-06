@@ -251,6 +251,7 @@ export default class DeviceItem extends Component<Props> {
         console.log(dev.data);
         const found = dev.data.some((i) => i.id === resp.data.data.id);
         if (!found) {
+          resp.data.data.value = JSON.parse(resp.data.data.value);
           this.props.data.push(resp.data.data);
           await this.createDeviceData(
             JSON.stringify(this.props.data),

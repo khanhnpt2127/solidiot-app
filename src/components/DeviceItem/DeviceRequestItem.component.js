@@ -14,10 +14,23 @@ import SolidAuth from "solid-auth-client";
 import { AccessControlList, ACLFactory } from "@inrupt/solid-react-components";
 
 export default class DeviceRequestItem extends Component {
+
+  extractDeviceId(deviceId) {
+    if(deviceId.includes("urn:dev:ops:")) {
+      var replacedHeader = deviceId.replace("urn:dev:ops:","");
+      var fullRes =  replacedHeader.replace("-HueDaylight-1234","");
+      var fullRes =  replacedHeader.replace("-HueLight-1","");
+
+      console.log(fullRes)
+      return fullRes;
+    }
+    return deviceId;
+}
   async handleAcceptRequest(event, deviceId, deviceRequester) {
     event.preventDefault();
     console.log(deviceRequester);
-
+    let deviceIdExtracted = this.extractDeviceId(deviceId);
+    console.log(deviceIdExtracted)
     // 2 - write permission
     SolidAuth.trackSession(async (session) => {
       if (!session) console.log("the user is not loggged in");
@@ -30,16 +43,16 @@ export default class DeviceRequestItem extends Component {
             modes: [AccessControlList.MODES.READ],
           },
         ];
-
+        const requesterUrl = new URL(deviceRequester);
         const ACLFile = await ACLFactory.createNewAcl(
           webId,
-          `https://${hostName.hostname}/solidiot-app/${deviceId}/data.json`
+          `https://${hostName.hostname}/solidiot-app/${deviceIdExtracted}/${requesterUrl.hostname}/data.json`
         );
         await ACLFile.createACL(permissions);
 
         const ACLDescFile = await ACLFactory.createNewAcl(
           webId,
-          `https://${hostName.hostname}/solidiot-app/${deviceId}/desc.jsonld`
+          `https://${hostName.hostname}/solidiot-app/${deviceIdExtracted}/desc.jsonld`
         );
 
         await ACLDescFile.createACL(permissions);
@@ -54,7 +67,9 @@ export default class DeviceRequestItem extends Component {
         doc
           .then(async (response) => {
             const text = await response.text();
+            
             var sharedItem = JSON.parse(text);
+            console.log(sharedItem)
             sharedItem.forEach((item) => {
               if (item.deviceID === deviceId && item.host === session.webId)
                 item.isAccepted = true;
@@ -82,7 +97,8 @@ export default class DeviceRequestItem extends Component {
       await docSetting.then(async (res) => {
         var curr = await res.text();
         var currSetting = JSON.parse(curr);
-        var item = currSetting.find((e) => e.id === deviceId);
+        var item = currSetting.find((e) => e.id === deviceIdExtracted);
+
         var isExited = item.sharedPeople.find((e) => e === deviceRequester);
         if (!isExited) item.sharedPeople.push(deviceRequester);
         var urlIndex = `https://${hostName.hostname}/solidiot-app/indexSettings.json`;
@@ -132,13 +148,26 @@ export default class DeviceRequestItem extends Component {
             console.log(result.err);
           }
 
-          window.location.reload();
+          //window.location.reload();
         })
         .catch((e) => {
           console.log(e);
         });
     });
   }
+
+  extractDeviceId(deviceId) {
+      if(deviceId.includes("urn:dev:ops:")) {
+          var replacedHeader = deviceId.replace("urn:dev:ops:","");
+          var fullRes =  replacedHeader.replace("-HueDaylight-1234","");
+          var fullRes =  replacedHeader.replace("-HueLight-1","");
+
+          console.log(fullRes)
+          return fullRes;
+      }
+      return deviceId;
+  }
+
   secondsToDhms(seconds) {
     seconds = Number(seconds);
     var d = Math.floor(seconds / (3600 * 24));
