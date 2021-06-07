@@ -1,10 +1,11 @@
 import * as cron from "node-cron";
 import SolidAuth from "solid-auth-client";
 import { AccessControlList, ACLFactory } from "@inrupt/solid-react-components";
-
+import Cookies from "universal-cookie";
 let listOfJob = [];
 let listOfNotification = [];
-let listOfTimerRevoke = [];
+let removeListOfTimerRevoke = [];
+let isReload = false;
 function RegisterJob(deviceId, deviceUrl) {
   var task = cron.schedule("*/5 * * * * *", () => {
     //TODO: call API to fetch new Data
@@ -210,24 +211,84 @@ async function SetAutoRevoke(deviceId, duration, userId) {
   console.log(duration);
   console.log(userId);
   console.log(Date.now());
+
+  const cookies = new Cookies();
+  let listOfTimerRevoke = [];
+  listOfTimerRevoke = cookies.get("listOfTimerRevoke");
   var timerRevoke = {
     acceptedDate: Date.now(),
     deviceId: deviceId,
     userId: userId,
+    duration: duration,
   };
-  listOfTimerRevoke.push(timerRevoke);
+  //TODO: check before add
+
+  if (Array.isArray(listOfTimerRevoke)) {
+    var isFound = listOfTimerRevoke.some(
+      (e) =>
+        e.deviceId === timerRevoke.deviceId &&
+        e.acceptedDate === timerRevoke.acceptedDate
+    );
+    if (!isFound) listOfTimerRevoke.push(timerRevoke);
+  } else {
+    listOfTimerRevoke = [];
+    listOfTimerRevoke.push(timerRevoke);
+  }
+
+  console.log(timerRevoke);
+  //TODO: save to cookie
+  cookies.set("listOfTimerRevoke", JSON.stringify(listOfTimerRevoke), {
+    path: "/",
+  });
+
+  console.log(cookies.get("listOfTimerRevoke"));
+}
+
+function StartAutoRevokeBackgroundTask() {
+  let listOfTimerRevoke = [];
+  const cookies = new Cookies();
+
+  listOfTimerRevoke = cookies.get("listOfTimerRevoke");
+
   var task = cron.schedule("*/60 * * * * *", () => {
-    listOfTimerRevoke.forEach((item) => {
-      var acceptedDate = new Date(item.acceptedDate)
+    if (Array.isArray(listOfTimerRevoke)) {
 
-      console.log(acceptedDate.getTime() + duration)
-      console.log(Date.now())
-      if(acceptedDate.getTime() + duration < Date.now()) {
-        RevokePermission(item.deviceId, item.userId)
-        
+      console.log("1")
+      listOfTimerRevoke.forEach((item) => {
+        var acceptedDate = new Date(item.acceptedDate);
+
+        console.log(acceptedDate.getTime() + item.duration);
+        console.log(Date.now());
+        if (acceptedDate.getTime() + item.duration < Date.now()) {
+          RevokePermission(item.deviceId, item.userId);
+          removeListOfTimerRevoke.push(item); 
+          isReload = true;
+        }
+      });
+      
+      removeListOfTimerRevoke.forEach((e) => {
+        listOfTimerRevoke.splice(listOfTimerRevoke.find((l) => l.deviceId === e.deviceId && l.acceptedDate === e.acceptedDate),1);
+      })
+      removeListOfTimerRevoke = [];
+      const cookies = new Cookies();
+      cookies.set("listOfTimerRevoke", JSON.stringify(listOfTimerRevoke), {
+        path: "/",
+      });
+      if(isReload) { isReload = false;  
+        setTimeout(() => {  window.location.reload()}, 5000);
+      }; 
+    } else { 
+      console.log("2")
+      if(listOfTimerRevoke.deviceId !== "") {
+        if (listOfTimerRevoke.getTime() + listOfTimerRevoke.duration < Date.now()) {
+          RevokePermission(listOfTimerRevoke.deviceId, listOfTimerRevoke.userId);
+          
+          const cookies = new Cookies();
+          cookies.remove("listOfTimerRevoke");
+          window.location.reload();
+        }
       }
-
-    });
+     }
   });
 
   task.start();
@@ -238,4 +299,5 @@ export {
   listOfJob,
   NewRequestObservationServiceWorker,
   SetAutoRevoke,
+  StartAutoRevokeBackgroundTask,
 };

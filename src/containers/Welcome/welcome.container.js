@@ -13,7 +13,7 @@ import { AccessControlList, ACLFactory } from "@inrupt/solid-react-components";
 import NewRequestComponent from "../../components/ListDevice/NewRequestDevice.component";
 import {createNonExistentDocument } from '../../utils/ldflex-helper'
 import Cookies from 'universal-cookie';
-import {NewRequestObservationServiceWorker ,RegisterJob, listOfJob } from "../../components/CronJob/cronJobServices";
+import {NewRequestObservationServiceWorker ,RegisterJob, listOfJob, StartAutoRevokeBackgroundTask } from "../../components/CronJob/cronJobServices";
 const defaultProfilePhoto = "/img/icon/empty-profile.svg";
 
 /**
@@ -64,6 +64,7 @@ export class WelcomeComponent extends Component<Props> {
 
   RegisterServiceWorker() {
     NewRequestObservationServiceWorker();
+    StartAutoRevokeBackgroundTask();
   }
 
   async grantNotificationPermission() {
